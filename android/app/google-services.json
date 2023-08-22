@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "238461599916",
+    "project_id": "sd-kids-4df87",
+    "storage_bucket": "sd-kids-4df87.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:238461599916:android:9047af55368592d0f35f09",
+        "android_client_info": {
+          "package_name": "cotey.hinton.sd_kids"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "238461599916-nd7ugsjpvlkqt1a0em43avt6m1dia6da.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "cotey.hinton.sd_kids",
+            "certificate_hash": "2b98c151b0624d717e4225e1bff411a6178d9452"
+          }
+        },
+        {
+          "client_id": "238461599916-76bff51vqk6r5njg54ig0jr86oa6gs2i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAIW4vz3ze9kBPc7sewJyHKjLQL5KC5NcE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "238461599916-76bff51vqk6r5njg54ig0jr86oa6gs2i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

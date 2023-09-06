@@ -45,7 +45,7 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
           List<Resource> resourcesAllTypes =
               viewModel.response.data['resources'];
           return Padding(
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 60),
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 80),
               child: SingleChildScrollView(
                   child: Column(children: <Widget>[
                 const Text(
@@ -57,6 +57,7 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
                 ),
                 for (var type in types)
                   ResourcesByType(
+                    viewModel,
                       types,
                       type,
                       resourcesAllTypes
@@ -76,9 +77,9 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
     });
   }
 
-  Future<double> get _height => Future<double>.value(390);
+  Future<double> get _height => Future<double>.value(415);
 
-  Widget ResourcesByType(
+  Widget ResourcesByType(ResourcesListViewModel viewModel,
       List<String> types, String type, List<Resource> resources) {
     return FutureBuilder<double>(
         future: _height,
@@ -100,7 +101,7 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
                             style: const TextStyle(
                                 fontSize: 20, fontWeight: FontWeight.bold)))),
                 Container(
-                    height: 337,
+                    height: 362,
                     child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         shrinkWrap: true,
@@ -119,14 +120,14 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
                                       'index': index
                                     });
                               },
-                              child: ResourceListItemWidget(context,
+                              child: ResourceListItemWidget(context, viewModel,
                                   resources[index], types, type, index));
                         }))
               ]));
         });
   }
 
-  Widget ResourceListItemWidget(BuildContext context, Resource resource,
+  Widget ResourceListItemWidget(BuildContext context, ResourcesListViewModel viewModel, Resource resource,
       List<String> types, String type, int index) {
     return Container(
         width: 300,
@@ -162,6 +163,81 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
                           fontSize: 16,
                           fontWeight: FontWeight.bold),
                     ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Padding(padding: EdgeInsets.fromLTRB(0,0,8,0), child:InkWell(
+                            onTap: () {
+
+                              if(resource.upVotes.contains(MyConstants.myFcmToken)){
+                                resource.upVotes.remove(MyConstants.myFcmToken);
+                                viewModel.upVoteResource(resource, MyConstants.myFcmToken, true);
+                                viewModel.downVoteResource(resource, MyConstants.myFcmToken, false);
+                                setState(() {
+                                  resource.upVotes.remove(MyConstants.myFcmToken);
+                                  resource.downVotes.add(MyConstants.myFcmToken);
+                                });
+                              }
+                              else if(resource.downVotes.contains(MyConstants.myFcmToken)){
+                                viewModel.downVoteResource(resource, MyConstants.myFcmToken, true);
+                                setState(() {
+                                  resource.downVotes.remove(MyConstants.myFcmToken);
+                                });
+                              }
+                              else {
+                                viewModel.downVoteResource(
+                                    resource, MyConstants.myFcmToken, false);
+                                setState(() {
+                                  resource.downVotes.add(MyConstants.myFcmToken);
+                                });
+                              }
+                            },
+                            child: Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(resource.downVotes.length.toString() + ' ', style: TextStyle(
+                                  color: resource.downVotes.contains(MyConstants.myFcmToken) ? Colors.blue: Colors.white,
+                                  fontSize: 16,),),
+                                Icon(Icons.thumb_down_sharp, color: resource.downVotes.contains(MyConstants.myFcmToken) ? Colors.blue: Colors.white,),
+                              ],
+                            ))),
+                        Padding(padding: EdgeInsets.fromLTRB(8, 0, 0, 0), child: InkWell(
+                            onTap: () {
+                              if(resource.downVotes.contains(MyConstants.myFcmToken)){
+                                resource.downVotes.remove(MyConstants.myFcmToken);
+                                viewModel.downVoteResource(resource, MyConstants.myFcmToken, true);
+                                viewModel.upVoteResource(resource, MyConstants.myFcmToken, false);
+                                setState(() {
+                                  resource.downVotes.remove(MyConstants.myFcmToken);
+                                  resource.upVotes.add(MyConstants.myFcmToken);
+                                });
+                              }
+                              else if(resource.upVotes.contains(MyConstants.myFcmToken)){
+                                viewModel.upVoteResource(resource, MyConstants.myFcmToken, true);
+                                setState(() {
+                                  resource.upVotes.remove(MyConstants.myFcmToken);
+                                });
+                              }
+                              else {
+                                viewModel.upVoteResource(
+                                    resource, MyConstants.myFcmToken, false);
+                                setState(() {
+                                  resource.upVotes.add(MyConstants.myFcmToken);
+                                });
+                              }
+                            },
+                            child: Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Icon(Icons.thumb_up_sharp,
+                                  color: resource.upVotes.contains(MyConstants.myFcmToken) ? Colors.blue: Colors.white,
+                                ),
+                                Text(' ' + resource.upVotes.length.toString(), style: TextStyle(
+                                  color: resource.upVotes.contains(MyConstants.myFcmToken) ? Colors.blue: Colors.white,
+                                  fontSize: 16,),),
+                              ],
+                            )))
+                      ],)
                   ],
                 ))));
   }

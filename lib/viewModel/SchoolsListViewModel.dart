@@ -26,6 +26,7 @@ class SchoolsListViewModel extends ChangeNotifier {
       var data = await firebaseRepository.getSchools();
       _types = data['types'];
       _schools = data['schools'];
+      _schools.sort((a,b) => b.upVotes.length.compareTo(a.upVotes.length));
       print(_schools.length);
       _firebaseResponse = FirebaseResponse.completed(
         {
@@ -39,5 +40,12 @@ class SchoolsListViewModel extends ChangeNotifier {
       print(e);
       notifyListeners();
     }
+  }
+
+  Future<bool> upVoteSchool(School school, String fcmToken, bool isRemoval) async {
+    return await firebaseRepository.upVote(school, 'schools', fcmToken, isRemoval);
+  }
+  Future<bool> downVoteSchool(School school, String fcmToken, bool isRemoval) async {
+    return await firebaseRepository.downVote(school, 'resources', fcmToken, isRemoval);
   }
 }

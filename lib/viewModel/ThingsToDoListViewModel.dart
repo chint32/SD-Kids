@@ -6,6 +6,7 @@ import '../repositories/FirebaseRepository.dart';
 
 class ThingsToDoListViewModel extends ChangeNotifier {
   var firebaseRepository = GetIt.instance.get<FirebaseRepository>();
+  List<String> _ageGroups = [];
   List<String> _categories = [];
   List<ThingToDo> _thingsToDo = [];
   FirebaseResponse _firebaseResponse = FirebaseResponse.initial('Initial Data');
@@ -23,12 +24,14 @@ class ThingsToDoListViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       var data = await firebaseRepository.getThingsToDo();
+      _ageGroups = data['age_groups'];
       _categories = data['categories'];
       _thingsToDo = data['thingsToDo'];
       _thingsToDo.sort((a,b) => a.price.compareTo(b.price));
       print(_thingsToDo.length);
       _firebaseResponse = FirebaseResponse.completed(
           {
+            'age_groups': _ageGroups,
             'categories': _categories,
             'thingsToDo': _thingsToDo
           }
@@ -58,6 +61,13 @@ class ThingsToDoListViewModel extends ChangeNotifier {
     }
     _firebaseResponse = FirebaseResponse.completed(filteredList);
     notifyListeners();
+  }
+
+  Future<bool> upVoteThingToDo(ThingToDo thingToDo, String fcmToken, bool isRemoval) async {
+    return await firebaseRepository.upVote(thingToDo, 'things_to_do', fcmToken, isRemoval);
+  }
+  Future<bool> downVoteThingToDo(ThingToDo thingToDo, String fcmToken, bool isRemoval) async {
+    return await firebaseRepository.downVote(thingToDo, 'things_to_do', fcmToken, isRemoval);
   }
 
 }

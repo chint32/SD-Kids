@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../util/constants.dart';
+
 class SharedWidgets {
   static Widget networkImageWithLoading(String imageUrl){
     return Image.network(
@@ -7,8 +9,8 @@ class SharedWidgets {
             ImageChunkEvent? loadingProgress) {
           if (loadingProgress == null) return child;
           return Container(
-              height: 180,
-              width: 350,
+              height: MyConstants.isMobile ? MyConstants.itemImageHeightMobile : MyConstants.itemImageHeightTablet,
+              width: MyConstants.isMobile ? MyConstants.itemImageWidthMobile : MyConstants.itemImageWidthTablet,
               child: Center(
                 child: CircularProgressIndicator(
                   value: loadingProgress.expectedTotalBytes != null
@@ -18,9 +20,11 @@ class SharedWidgets {
                 ),
               ));
         },
-        height: 180,
-        width: 350,
+        height: MyConstants.isMobile ? MyConstants.itemImageHeightMobile : MyConstants.itemImageHeightTablet,
+        width: MyConstants.isMobile ? MyConstants.itemImageWidthMobile : MyConstants.itemImageWidthTablet,
         fit: BoxFit.fill,
         imageUrl);
   }
+
+
 }

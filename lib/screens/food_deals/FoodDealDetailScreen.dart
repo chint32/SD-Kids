@@ -26,8 +26,8 @@ class _FoodDealDetailScreenState extends State<FoodDealDetailScreen> {
     print('Food Deal Detail Screen');
 
     return Padding(
-        padding: EdgeInsets.all(10),
-        child: Center(
+        padding: EdgeInsets.fromLTRB(10, 10, 10, 100),
+        child: SingleChildScrollView(
           child: Column(
             children: [
               Padding(
@@ -35,13 +35,15 @@ class _FoodDealDetailScreenState extends State<FoodDealDetailScreen> {
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
+                        Flexible(child: Text(
                           widget.foodDeal.name,
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 24,
                               fontFamily: 'Jost',
                               fontWeight: FontWeight.bold),
-                        ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        )),
                         Text(
                           '\$${widget.foodDeal.price}',
                           style: TextStyle(
@@ -79,39 +81,45 @@ class _FoodDealDetailScreenState extends State<FoodDealDetailScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 20, fontFamily: 'Jost'),
               ),
-              InkWell(
-                onTap: () async {
-                  final Uri url = Uri.parse(widget.foodDeal.website);
-                  if (!await launchUrl(url)) {
-                    throw Exception(
-                        'Could not launch ${widget.foodDeal.website}');
-                  }
-                },
-                child: Text(
-                  widget.foodDeal.website,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontFamily: 'Jost',
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline),
-                ),
-              ),
-              SizedBox(height: 10,),
-              InkWell(
-                onTap: () {
-                  MapsLauncher.launchQuery(widget.foodDeal.address);
-                },
-                child: Text(
-                  widget.foodDeal.address,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontFamily: 'Jost',
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline),
-                ),
-              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      final Uri url = Uri.parse(widget.foodDeal.website);
+                      if (!await launchUrl(url)) {
+                        throw Exception(
+                            'Could not launch ${widget.foodDeal.website}');
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue),
+                    child: const Text(
+                      'Open Website',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontFamily: 'Jost',
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      MapsLauncher.launchQuery(widget.foodDeal.address);
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue),
+                    child: const Text(
+                      'Open Maps',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontFamily: 'Jost',
+                      ),
+                    ),
+                  )
+                ],
+              )
             ],
           ),
         ));

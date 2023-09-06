@@ -22,7 +22,7 @@ class FoodDealListViewModel extends ChangeNotifier{
     notifyListeners();
     try {
       _foodDeals = await firebaseRepository.getFoodDeals();
-      _foodDeals.sort((a,b) => a.daysOfWeek[0].compareTo(b.daysOfWeek[0]));
+      _foodDeals.sort((a,b) => a.ageLimit.compareTo(b.ageLimit));
       print(_foodDeals.length);
       _firebaseResponse = FirebaseResponse.completed(_foodDeals);
       notifyListeners();
@@ -31,5 +31,12 @@ class FoodDealListViewModel extends ChangeNotifier{
       print(e);
       notifyListeners();
     }
+  }
+
+  Future<bool> upVoteFoodDeal(FoodDeal foodDeal, String fcmToken, bool isRemoval) async {
+    return await firebaseRepository.upVote(foodDeal, 'food_deals',fcmToken, isRemoval);
+  }
+  Future<bool> downVoteFoodDeal(FoodDeal foodDeal, String fcmToken, bool isRemoval) async {
+    return await firebaseRepository.downVote(foodDeal, 'food_deals', fcmToken, isRemoval);
   }
 }

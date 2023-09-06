@@ -21,8 +21,8 @@ class _SchoolDetailScreenState extends State<SchoolDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: EdgeInsets.all(10),
-        child: Center(
+        padding: const EdgeInsets.fromLTRB(10, 10, 10, 100),
+        child: SingleChildScrollView(
           child: Column(
             children: [
               Padding(
@@ -34,6 +34,8 @@ class _SchoolDetailScreenState extends State<SchoolDetailScreen> {
                       fontSize: 24,
                       fontFamily: 'Jost',
                       fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               Hero(
@@ -65,39 +67,45 @@ class _SchoolDetailScreenState extends State<SchoolDetailScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 20, fontFamily: 'Jost'),
               ),
-              InkWell(
-                onTap: () async {
-                  final Uri url = Uri.parse(widget.school.website);
-                  if (!await launchUrl(url)) {
-                    throw Exception(
-                        'Could not launch ${widget.school.website}');
-                  }
-                },
-                child: Text(
-                  widget.school.website,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontFamily: 'Jost',
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline),
-                ),
-              ),
-              SizedBox(height: 10,),
-              InkWell(
-                onTap: () {
-                  MapsLauncher.launchQuery(widget.school.address);
-                },
-                child: Text(
-                  widget.school.address,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontFamily: 'Jost',
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline),
-                ),
-              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      final Uri url = Uri.parse(widget.school.website);
+                      if (!await launchUrl(url)) {
+                        throw Exception(
+                            'Could not launch ${widget.school.website}');
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue),
+                    child: const Text(
+                      'Open Website',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontFamily: 'Jost',
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      MapsLauncher.launchQuery(widget.school.address);
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue),
+                    child: const Text(
+                      'Open Maps',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontFamily: 'Jost',
+                      ),
+                    ),
+                  )
+                ],
+              )
             ],
           ),
         ));

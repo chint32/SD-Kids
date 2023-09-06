@@ -26,6 +26,7 @@ class ResourcesListViewModel extends ChangeNotifier {
       var data = await firebaseRepository.getResources();
       _types = data['types'];
       _resources = data['resources'];
+      _resources.sort((a,b) => b.upVotes.length.compareTo(a.upVotes.length));
       _firebaseResponse = FirebaseResponse.completed(
           {
             'types': _types,
@@ -38,5 +39,12 @@ class ResourcesListViewModel extends ChangeNotifier {
       print(e);
       notifyListeners();
     }
+  }
+
+  Future<bool> upVoteResource(Resource resource, String fcmToken, bool isRemoval) async {
+    return await firebaseRepository.upVote(resource, 'resources', fcmToken, isRemoval);
+  }
+  Future<bool> downVoteResource(Resource resource, String fcmToken, bool isRemoval) async {
+    return await firebaseRepository.downVote(resource, 'resources', fcmToken, isRemoval);
   }
 }

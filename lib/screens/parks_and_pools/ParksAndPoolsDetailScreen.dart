@@ -23,8 +23,8 @@ class _ParksAndPoolsDetailScreenState extends State<ParksAndPoolsDetailScreen> {
     print('Pool Splash Pad Detail Screen');
 
     return Padding(
-        padding: EdgeInsets.all(10),
-        child: Center(
+        padding: EdgeInsets.fromLTRB(10, 10, 10, 100),
+        child: SingleChildScrollView(
           child: Column(
             children: [
               Padding(
@@ -32,13 +32,15 @@ class _ParksAndPoolsDetailScreenState extends State<ParksAndPoolsDetailScreen> {
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
+                        Flexible(child: Text(
                           widget.parkAndPool.name,
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 24,
                               fontFamily: 'Jost',
                               fontWeight: FontWeight.bold),
-                        ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        )),
                         Text(
                           '\$${widget.parkAndPool.price}',
                           style: TextStyle(
@@ -76,39 +78,45 @@ class _ParksAndPoolsDetailScreenState extends State<ParksAndPoolsDetailScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 20, fontFamily: 'Jost'),
               ),
-              InkWell(
-                onTap: () async {
-                  final Uri url = Uri.parse(widget.parkAndPool.website);
-                  if (!await launchUrl(url)) {
-                    throw Exception(
-                        'Could not launch ${widget.parkAndPool.website}');
-                  }
-                },
-                child: Text(
-                  widget.parkAndPool.website,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontFamily: 'Jost',
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline),
-                ),
-              ),
-              SizedBox(height: 10,),
-              InkWell(
-                onTap: () {
-                  MapsLauncher.launchQuery(widget.parkAndPool.address);
-                },
-                child: Text(
-                  widget.parkAndPool.address,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontFamily: 'Jost',
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline),
-                ),
-              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      final Uri url = Uri.parse(widget.parkAndPool.website);
+                      if (!await launchUrl(url)) {
+                        throw Exception(
+                            'Could not launch ${widget.parkAndPool.website}');
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue),
+                    child: const Text(
+                      'Open Website',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontFamily: 'Jost',
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      MapsLauncher.launchQuery(widget.parkAndPool.address);
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue),
+                    child: const Text(
+                      'Open Maps',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontFamily: 'Jost',
+                      ),
+                    ),
+                  )
+                ],
+              )
             ],
           ),
         ));

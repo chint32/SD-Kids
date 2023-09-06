@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:sd_kids/main.dart';
 import 'package:sd_kids/screens/events/EventDetailScreen.dart';
@@ -15,6 +16,7 @@ import 'package:sd_kids/screens/schools/SchoolDetailScreen.dart';
 import 'package:sd_kids/screens/schools/SchoolsListScreen.dart';
 import 'package:sd_kids/screens/things_to_do/ThingsToDoDetailScreen.dart';
 import 'package:sd_kids/screens/things_to_do/ThingsToDoListScreen.dart';
+import 'package:sd_kids/util/constants.dart';
 
 class NavDrawer extends StatefulWidget {
   NavDrawer({
@@ -28,40 +30,46 @@ class NavDrawer extends StatefulWidget {
 class _NavDrawerState extends State<NavDrawer> with TickerProviderStateMixin {
   final navKey = GlobalKey<NavigatorState>();
   bool selected = false;
+  bool _isAppBarWithNav = true;
   late HeroController _heroController;
-  late AnimationController _animationControler;
-  late AnimationController _animControler;
+  late AnimationController _animationController;
+  late AnimationController _animController;
   late Animation heightAnimation;
   late Animation animation;
   late Animation scaleAnimation;
   late Animation roundCornerAnimation;
 
   @override
+  void dispose() {
+    _animationController.dispose();
+    _animController.dispose();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     _heroController = HeroController();
-    _animationControler = AnimationController(
+    _animationController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 400))
       ..addListener(() {
         setState(() {});
       });
-    _animControler = AnimationController(
+    _animController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 600))
       ..addListener(() {
         setState(() {});
       });
     heightAnimation = Tween<double>(begin: 1, end: .15).animate(
-        CurvedAnimation(parent: _animControler, curve: Curves.easeInOut));
+        CurvedAnimation(parent: _animController, curve: Curves.easeInOut));
     animation = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(
-        parent: _animationControler, curve: Curves.fastOutSlowIn));
+        parent: _animationController, curve: Curves.fastOutSlowIn));
     scaleAnimation = Tween<double>(begin: 1, end: .9).animate(CurvedAnimation(
-        parent: _animationControler, curve: Curves.fastOutSlowIn));
+        parent: _animationController, curve: Curves.fastOutSlowIn));
     roundCornerAnimation = Tween<double>(begin: 0, end: 20).animate(
         CurvedAnimation(
-            parent: _animationControler, curve: Curves.fastOutSlowIn));
+            parent: _animationController, curve: Curves.fastOutSlowIn));
     super.initState();
   }
-
-  bool _isAppBarWithNav = true;
 
   void appBarChange() {
     setState(() {
@@ -90,9 +98,9 @@ class _NavDrawerState extends State<NavDrawer> with TickerProviderStateMixin {
           ),
           onPressed: () {
             if (!selected)
-              _animationControler.forward();
+              _animationController.forward();
             else
-              _animationControler.reverse();
+              _animationController.reverse();
             setState(() {
               selected = !selected;
             });
@@ -161,6 +169,8 @@ class _NavDrawerState extends State<NavDrawer> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    MyConstants.isMobile = MediaQuery.of(context).size.width < MyConstants.minTabletWidth;
+
     return WillPopScope(
         onWillPop: () async {
           if (!_isAppBarWithNav) appBarChange();
@@ -226,151 +236,172 @@ class _NavDrawerState extends State<NavDrawer> with TickerProviderStateMixin {
                     ..setEntry(3, 2, .001)
                     ..rotateY(animation.value - 30 * animation.value * pi / 180)
                     ..translate(animation.value * 100, 0, 0),
-                  child: Container(
-                      decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor,
-                          border: Border.all(
+                  child: Stack(children: [
+
+                    Container(
+                        decoration: BoxDecoration(
                             color: Theme.of(context).primaryColor,
-                          ),
-                          borderRadius: BorderRadius.all(
-                              Radius.circular(roundCornerAnimation.value))),
-                      width: MediaQuery.of(context).size.width,
-                      height: !animHeight
-                          ? MediaQuery.of(context).size.height *
-                              scaleAnimation.value
-                          : MediaQuery.of(context).size.height *
-                              heightAnimation.value,
-                      child: Navigator(
-                        observers: [_heroController],
-                        key: navKey,
-                        initialRoute: NavRoutes.eventsRoute,
-                        onGenerateRoute: (settings) {
-                          print(settings.name);
-                          switch (settings.name) {
-                            case NavRoutes.eventsRoute:
-                              return MaterialPageRoute(builder: (context) {
-                                return EventsListScreen(
-                                  appBarChange: appBarChange,
-                                  navKey: navKey,
-                                );
-                              });
-                            case NavRoutes.eventDetailsRoute:
-                              var args =
-                                  settings.arguments as Map<String, dynamic>;
-                              return MaterialPageRoute(builder: (context) {
-                                return EventDetailScreen(
-                                    event: args['event'],
+                            border: Border.all(
+                              color: Theme.of(context).primaryColor,
+                            ),
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(roundCornerAnimation.value))),
+                        width: MediaQuery.of(context).size.width,
+                        height: !animHeight
+                            ? MediaQuery.of(context).size.height *
+                                scaleAnimation.value
+                            : MediaQuery.of(context).size.height *
+                                heightAnimation.value,
+                        child: Navigator(
+                          observers: [_heroController],
+                          key: navKey,
+                          initialRoute: NavRoutes.eventsRoute,
+                          onGenerateRoute: (settings) {
+                            print(settings.name);
+                            switch (settings.name) {
+                              case NavRoutes.eventsRoute:
+                                return MaterialPageRoute(builder: (context) {
+                                  return EventsListScreen(
+                                    appBarChange: appBarChange,
+                                    navKey: navKey,
+                                  );
+                                });
+                              case NavRoutes.eventDetailsRoute:
+                                var args =
+                                    settings.arguments as Map<String, dynamic>;
+                                return MaterialPageRoute(builder: (context) {
+                                  return EventDetailScreen(
+                                      event: args['event'],
+                                      category: args['category'],
+                                      index: args['index']);
+                                });
+                              case NavRoutes.foodDealsRoute:
+                                return MaterialPageRoute(builder: (context) {
+                                  return FoodDealsListScreen(
+                                    appBarChange: appBarChange,
+                                    navKey: navKey,
+                                  );
+                                });
+                              case NavRoutes.foodDealDetailsRoute:
+                                var args =
+                                    settings.arguments as Map<String, dynamic>;
+                                return MaterialPageRoute(builder: (context) {
+                                  return FoodDealDetailScreen(
+                                    foodDeal: args['food_deal'],
+                                    dayOfWeek: args['dayOfWeek'],
+                                    index: args['index'],
+                                  );
+                                });
+                              case NavRoutes.parksAndPoolsRoute:
+                                return MaterialPageRoute(builder: (context) {
+                                  return ParksAndPoolsListScreen(
+                                    appBarChange: appBarChange,
+                                    navKey: navKey,
+                                  );
+                                });
+                              case NavRoutes.parkAndPoolDetailsRoute:
+                                var args =
+                                    settings.arguments as Map<String, dynamic>;
+                                return MaterialPageRoute(builder: (context) {
+                                  return ParksAndPoolsDetailScreen(
+                                    parkAndPool: args['park_and_pool'],
+                                    index: args['index'],
+                                  );
+                                });
+                              case NavRoutes.recCentersRoute:
+                                return MaterialPageRoute(builder: (context) {
+                                  return RecCentersListScreen(
+                                    appBarChange: appBarChange,
+                                    navKey: navKey,
+                                  );
+                                });
+                              case NavRoutes.recCenterDetailsRoute:
+                                var args =
+                                    settings.arguments as Map<String, dynamic>;
+                                return MaterialPageRoute(builder: (context) {
+                                  return RecCenterDetailScreen(
+                                    recCenter: args['rec_center'],
+                                    index: args['index'],
+                                  );
+                                });
+                              case NavRoutes.thingsToDoRoute:
+                                return MaterialPageRoute(builder: (context) {
+                                  return ThingsToDoListScreen(
+                                    appBarChange: appBarChange,
+                                    navKey: navKey,
+                                  );
+                                });
+                              case NavRoutes.thingToDoDetailsRoute:
+                                var args =
+                                    settings.arguments as Map<String, dynamic>;
+                                return MaterialPageRoute(builder: (context) {
+                                  return ThingsToDoDetailScreen(
+                                    thingToDo: args['thing_to_do'],
                                     category: args['category'],
-                                    index: args['index']);
-                              });
-                            case NavRoutes.foodDealsRoute:
-                              return MaterialPageRoute(builder: (context) {
-                                return FoodDealsListScreen(
-                                  appBarChange: appBarChange,
-                                  navKey: navKey,
-                                );
-                              });
-                            case NavRoutes.foodDealDetailsRoute:
-                              var args =
-                                  settings.arguments as Map<String, dynamic>;
-                              return MaterialPageRoute(builder: (context) {
-                                return FoodDealDetailScreen(
-                                  foodDeal: args['food_deal'],
-                                  dayOfWeek: args['dayOfWeek'],
-                                  index: args['index'],
-                                );
-                              });
-                            case NavRoutes.parksAndPoolsRoute:
-                              return MaterialPageRoute(builder: (context) {
-                                return ParksAndPoolsListScreen(
-                                  appBarChange: appBarChange,
-                                  navKey: navKey,
-                                );
-                              });
-                            case NavRoutes.parkAndPoolDetailsRoute:
-                              var args =
-                                  settings.arguments as Map<String, dynamic>;
-                              return MaterialPageRoute(builder: (context) {
-                                return ParksAndPoolsDetailScreen(
-                                  parkAndPool: args['park_and_pool'],
-                                  index: args['index'],
-                                );
-                              });
-                            case NavRoutes.recCentersRoute:
-                              return MaterialPageRoute(builder: (context) {
-                                return RecCentersListScreen(
-                                  appBarChange: appBarChange,
-                                  navKey: navKey,
-                                );
-                              });
-                            case NavRoutes.recCenterDetailsRoute:
-                              var args =
-                                  settings.arguments as Map<String, dynamic>;
-                              return MaterialPageRoute(builder: (context) {
-                                return RecCenterDetailScreen(
-                                  recCenter: args['rec_center'],
-                                  index: args['index'],
-                                );
-                              });
-                            case NavRoutes.thingsToDoRoute:
-                              return MaterialPageRoute(builder: (context) {
-                                return ThingsToDoListScreen(
-                                  appBarChange: appBarChange,
-                                  navKey: navKey,
-                                );
-                              });
-                            case NavRoutes.thingToDoDetailsRoute:
-                              var args =
-                                  settings.arguments as Map<String, dynamic>;
-                              return MaterialPageRoute(builder: (context) {
-                                return ThingsToDoDetailScreen(
-                                  thingToDo: args['thing_to_do'],
-                                  category: args['category'],
-                                  index: args['index'],
-                                );
-                              });
-                            case NavRoutes.resourcesRoute:
-                              return MaterialPageRoute(builder: (context) {
-                                return ResourcesListScreen(
-                                  appBarChange: appBarChange,
-                                  navKey: navKey,
-                                );
-                              });
-                            case NavRoutes.resourceDetailsRoute:
-                              var args =
-                              settings.arguments as Map<String, dynamic>;
-                              return MaterialPageRoute(builder: (context) {
-                                return ResourceDetailScreen(
-                                  resource: args['resource'],
-                                  type: args['type'],
-                                  index: args['index'],
-                                );
-                              });
-                            case NavRoutes.schoolsRoute:
-                              return MaterialPageRoute(builder: (context) {
-                                return SchoolsListScreen(
-                                  appBarChange: appBarChange,
-                                  navKey: navKey,
-                                );
-                              });
-                            case NavRoutes.schoolDetailsRoute:
-                              var args =
-                              settings.arguments as Map<String, dynamic>;
-                              return MaterialPageRoute(builder: (context) {
-                                return SchoolDetailScreen(
-                                  school: args['school'],
-                                  type: args['type'],
-                                  index: args['index'],
-                                );
-                              });
-                            default:
-                              return MaterialPageRoute(builder: (context) {
-                                return EventsListScreen(
-                                    appBarChange: appBarChange, navKey: navKey);
-                              });
-                          }
-                        },
-                      ))))
+                                    index: args['index'],
+                                  );
+                                });
+                              case NavRoutes.resourcesRoute:
+                                return MaterialPageRoute(builder: (context) {
+                                  return ResourcesListScreen(
+                                    appBarChange: appBarChange,
+                                    navKey: navKey,
+                                  );
+                                });
+                              case NavRoutes.resourceDetailsRoute:
+                                var args =
+                                    settings.arguments as Map<String, dynamic>;
+                                return MaterialPageRoute(builder: (context) {
+                                  return ResourceDetailScreen(
+                                    resource: args['resource'],
+                                    type: args['type'],
+                                    index: args['index'],
+                                  );
+                                });
+                              case NavRoutes.schoolsRoute:
+                                return MaterialPageRoute(builder: (context) {
+                                  return SchoolsListScreen(
+                                    appBarChange: appBarChange,
+                                    navKey: navKey,
+                                  );
+                                });
+                              case NavRoutes.schoolDetailsRoute:
+                                var args =
+                                    settings.arguments as Map<String, dynamic>;
+                                return MaterialPageRoute(builder: (context) {
+                                  return SchoolDetailScreen(
+                                    school: args['school'],
+                                    type: args['type'],
+                                    index: args['index'],
+                                  );
+                                });
+                              default:
+                                return MaterialPageRoute(builder: (context) {
+                                  return EventsListScreen(
+                                      appBarChange: appBarChange,
+                                      navKey: navKey);
+                                });
+                            }
+                          },
+                        )),
+                    if (selected)
+                      GestureDetector(
+                          onTap: () {
+                            _animationController.reverse();
+                            setState(() {
+                              selected = false;
+                            });
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(Radius.circular(20)),
+                              color: Colors.transparent.withOpacity(.6),
+
+                            ),
+                            width: MediaQuery.of(context).size.width,
+                            height: MediaQuery.of(context).size.height - 80,
+                          )),
+                  ])))
         ])
       ]),
     );
@@ -400,13 +431,13 @@ class _NavDrawerState extends State<NavDrawer> with TickerProviderStateMixin {
       onTap: () {
         setState(() {
           if (!selected) {
-            _animationControler.forward();
+            _animationController.forward();
           } else {
-            _animationControler.reverse().whenComplete(() {
+            _animationController.reverse().whenComplete(() {
               animHeight = true;
-              _animControler.forward().whenComplete(() {
+              _animController.forward().whenComplete(() {
                 navKey.currentState!.pushNamed(route);
-                _animControler.reverse().whenComplete(() {
+                _animController.reverse().whenComplete(() {
                   animHeight = false;
                 });
               });

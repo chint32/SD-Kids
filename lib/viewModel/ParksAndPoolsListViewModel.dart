@@ -33,4 +33,11 @@ class ParksAndPoolsListViewModel extends ChangeNotifier {
     }
   }
 
+  Future<bool> upVoteParkAndPool(ParksAndPools parkAndPool, String fcmToken, bool isRemoval) async {
+    return await firebaseRepository.upVote(parkAndPool, 'pools_splash_pads',fcmToken, isRemoval);
+  }
+  Future<bool> downVoteParkAndPool(ParksAndPools parkAndPool, String fcmToken, bool isRemoval) async {
+    return await firebaseRepository.downVote(parkAndPool, 'pools_splash_pads', fcmToken, isRemoval);
+  }
+
 }

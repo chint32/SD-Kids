@@ -23,6 +23,7 @@ class RecCenterListViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       _recCenters = await firebaseRepository.getRecCenters();
+      _recCenters.sort((a,b) => b.upVotes.length.compareTo(a.upVotes.length));
       print(_recCenters.length);
       _firebaseResponse = FirebaseResponse.completed(_recCenters);
       notifyListeners();
@@ -31,5 +32,12 @@ class RecCenterListViewModel extends ChangeNotifier {
       print(e);
       notifyListeners();
     }
+  }
+
+  Future<bool> upVoteRecCenter(RecCenter recCenter, String fcmToken, bool isRemoval) async {
+    return await firebaseRepository.upVote(recCenter, 'rec_centers', fcmToken, isRemoval);
+  }
+  Future<bool> downVoteRecCenter(RecCenter recCenter, String fcmToken, bool isRemoval) async {
+    return await firebaseRepository.downVote(recCenter, 'rec_centers', fcmToken, isRemoval);
   }
 }

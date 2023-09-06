@@ -26,8 +26,8 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: EdgeInsets.all(10),
-        child: Center(
+        padding: const EdgeInsets.fromLTRB(10, 10, 10, 100),
+        child: SingleChildScrollView(
           child: Column(
             children: [
               Padding(
@@ -39,6 +39,8 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
                               fontSize: 24,
                               fontFamily: 'Jost',
                               fontWeight: FontWeight.bold),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
               Hero(
@@ -70,39 +72,45 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 20, fontFamily: 'Jost'),
               ),
-              InkWell(
-                onTap: () async {
-                  final Uri url = Uri.parse(widget.resource.website);
-                  if (!await launchUrl(url)) {
-                    throw Exception(
-                        'Could not launch ${widget.resource.website}');
-                  }
-                },
-                child: Text(
-                  widget.resource.website,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontFamily: 'Jost',
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline),
-                ),
-              ),
-              SizedBox(height: 10,),
-              InkWell(
-                onTap: () {
-                  MapsLauncher.launchQuery(widget.resource.address);
-                },
-                child: Text(
-                  widget.resource.address,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontFamily: 'Jost',
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline),
-                ),
-              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      final Uri url = Uri.parse(widget.resource.website);
+                      if (!await launchUrl(url)) {
+                        throw Exception(
+                            'Could not launch ${widget.resource.website}');
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue),
+                    child: const Text(
+                      'Open Website',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontFamily: 'Jost',
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      MapsLauncher.launchQuery(widget.resource.address);
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue),
+                    child: const Text(
+                      'Open Maps',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontFamily: 'Jost',
+                      ),
+                    ),
+                  )
+                ],
+              )
             ],
           ),
         ));

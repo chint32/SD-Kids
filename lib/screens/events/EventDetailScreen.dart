@@ -1,13 +1,9 @@
 import 'dart:math';
-
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../main.dart';
 import '../../models/Event.dart';
-import '../../viewModel/EventDetailViewModel.dart';
 
 class EventDetailScreen extends StatefulWidget {
   final Event event;
@@ -15,7 +11,10 @@ class EventDetailScreen extends StatefulWidget {
   final int index;
 
   const EventDetailScreen(
-      {super.key, required this.event, required this.category, required this.index});
+      {super.key,
+      required this.event,
+      required this.category,
+      required this.index});
 
   @override
   State<EventDetailScreen> createState() => _EventDetailScreenState();
@@ -37,8 +36,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   //   _getToken();
   // }
 
-  final viewModel = EventDetailViewModel();
-
   @override
   Widget build(BuildContext context) {
     String date = DateFormat('EEEE, MM/dd/yyyy, hh:mm a')
@@ -49,8 +46,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     return Container(
         color: Theme.of(context).primaryColor,
         child: Padding(
-            padding: EdgeInsets.all(10),
-            child: Center(
+            padding: EdgeInsets.fromLTRB(10, 10, 10, 100),
+            child: SingleChildScrollView(
               child: Column(
                 children: [
                   Padding(
@@ -59,16 +56,18 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                       child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
+                            Flexible(child: Text(
                               widget.event.title,
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 24,
                                   fontFamily: 'Jost',
                                   fontWeight: FontWeight.bold),
-                            ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            )),
                             Text(
                               '\$${widget.event.price}',
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 24,
                                   fontFamily: 'Jost',
                                   fontWeight: FontWeight.bold),
@@ -100,7 +99,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           EdgeInsets.symmetric(vertical: 10, horizontal: 0),
                       child: Text(
                         widget.event.subTitle,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 22,
                             fontFamily: 'Jost',
                             fontWeight: FontWeight.bold),
@@ -111,46 +110,53 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   Padding(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 0),
                       child: Text(
                         widget.event.description,
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 20, fontFamily: 'Jost'),
+                        style:
+                            const TextStyle(fontSize: 20, fontFamily: 'Jost'),
                       )),
-                  InkWell(
-                    onTap: () async {
-                      final Uri url = Uri.parse(widget.event.website);
-                      if (!await launchUrl(url)) {
-                        throw Exception(
-                            'Could not launch ${widget.event.website}');
-                      }
-                    },
-                    child: Text(
-                      widget.event.website,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontFamily: 'Jost',
-                          color: Colors.blue,
-                          decoration: TextDecoration.underline),
-                    ),
-                  ),
-                  SizedBox(height: 10,),
-                  InkWell(
-                    onTap: () {
-                      MapsLauncher.launchQuery(widget.event.address);
-                    },
-                    child: Text(
-                      widget.event.address,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontFamily: 'Jost',
-                          color: Colors.blue,
-                          decoration: TextDecoration.underline),
-                    ),
-                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          final Uri url = Uri.parse(widget.event.website);
+                          if (!await launchUrl(url)) {
+                            throw Exception(
+                                'Could not launch ${widget.event.website}');
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue),
+                        child: const Text(
+                          'Open Website',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontFamily: 'Jost',
+                          ),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          MapsLauncher.launchQuery(widget.event.address);
+                        },
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue),
+                        child: const Text(
+                          'Open Maps',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontFamily: 'Jost',
+                          ),
+                        ),
+                      )
+                    ],
+                  )
                   // ElevatedButton(onPressed: () async {
                   //   Event updatedEvent = await viewModel
                   //       .updateEventPlanToGo(event, fcmToken);

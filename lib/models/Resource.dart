@@ -1,4 +1,5 @@
 class Resource {
+  String id;
   List<String> types;
   String name;
   String description;
@@ -6,8 +7,11 @@ class Resource {
   String phone;
   String address;
   String website;
+  List<String> upVotes;
+  List<String> downVotes;
 
   Resource(
+      this.id,
       this.types,
       this.name,
       this.description,
@@ -15,5 +19,7 @@ class Resource {
       this.phone,
       this.address,
       this.website,
+      this.upVotes,
+      this.downVotes
       );
 }

@@ -11,6 +11,7 @@ class Event {
   Timestamp startDateTime;
   Timestamp endDateTime;
   List<String> categories;
+  List<String> ageGroups;
   int price;
 
   Event(
@@ -24,6 +25,7 @@ class Event {
       this.startDateTime,
       this.endDateTime,
       this.categories,
+      this.ageGroups,
       this.price,
       );
 
@@ -39,6 +41,7 @@ class Event {
         Timestamp.fromDate(DateTime.now()),
         Timestamp.fromDate(DateTime.now()),
         parsedJson['categories'].toString().split(","),
+        parsedJson['ageGroups'].toString().split(","),
         int.parse(parsedJson['price'].toString())
     );
   }

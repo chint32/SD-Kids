@@ -7,6 +7,7 @@ import '../models/FirebaseResponse.dart';
 class EventListViewModel with ChangeNotifier {
 
   var firebaseRepository = GetIt.instance.get<FirebaseRepository>();
+  List<String> _ageGroups = [];
   List<String> _categories = [];
   List<Event> _events = [];
   FirebaseResponse _firebaseResponse = FirebaseResponse.initial('Initial Data');
@@ -24,11 +25,13 @@ class EventListViewModel with ChangeNotifier {
     notifyListeners();
     try {
       var data = await firebaseRepository.getEvents();
+      _ageGroups = data['ageGroups'];
       _categories = data['categories'];
       _events = data['events'];
       _events.sort((a,b) => a.startDateTime.compareTo(b.startDateTime));
       _firebaseResponse = FirebaseResponse.completed(
           {
+            'ageGroups': _ageGroups,
             'categories': _categories,
             'events': _events
           }

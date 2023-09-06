@@ -43,7 +43,7 @@ class _SchoolsListScreenState extends State<SchoolsListScreen> {
           List<String> types = viewModel.response.data['types'];
           List<School> schoolsAllTypes = viewModel.response.data['schools'];
           return Padding(
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 60),
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 80),
               child: SingleChildScrollView(
                   child: Column(children: <Widget>[
                 const Text(
@@ -55,6 +55,7 @@ class _SchoolsListScreenState extends State<SchoolsListScreen> {
                 ),
                 for (var type in types)
                   SchoolsByType(
+                    viewModel,
                       types,
                       type,
                       schoolsAllTypes
@@ -74,9 +75,9 @@ class _SchoolsListScreenState extends State<SchoolsListScreen> {
     });
   }
 
-  Future<double> get _height => Future<double>.value(390);
+  Future<double> get _height => Future<double>.value(410);
 
-  Widget SchoolsByType(List<String> types, String type, List<School> schools) {
+  Widget SchoolsByType(SchoolsListViewModel viewModel, List<String> types, String type, List<School> schools) {
     return FutureBuilder<double>(
         future: _height,
         initialData: 0.0,
@@ -97,7 +98,7 @@ class _SchoolsListScreenState extends State<SchoolsListScreen> {
                             style: const TextStyle(
                                 fontSize: 20, fontWeight: FontWeight.bold)))),
                 Container(
-                    height: 337,
+                    height: 361,
                     child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         shrinkWrap: true,
@@ -117,13 +118,13 @@ class _SchoolsListScreenState extends State<SchoolsListScreen> {
                                     });
                               },
                               child: SchoolListItemWidget(
-                                  context, schools[index], types, type, index));
+                                  context, viewModel, schools[index], types, type, index));
                         }))
               ]));
         });
   }
 
-  Widget SchoolListItemWidget(BuildContext context, School school,
+  Widget SchoolListItemWidget(BuildContext context, SchoolsListViewModel viewModel, School school,
       List<String> types, String type, int index) {
     return Container(
         width: 300,
@@ -159,6 +160,81 @@ class _SchoolsListScreenState extends State<SchoolsListScreen> {
                           fontSize: 16,
                           fontWeight: FontWeight.bold),
                     ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Padding(padding: EdgeInsets.fromLTRB(0,0,8,0), child:InkWell(
+                            onTap: () {
+
+                              if(school.upVotes.contains(MyConstants.myFcmToken)){
+                                school.upVotes.remove(MyConstants.myFcmToken);
+                                viewModel.upVoteSchool(school, MyConstants.myFcmToken, true);
+                                viewModel.downVoteSchool(school, MyConstants.myFcmToken, false);
+                                setState(() {
+                                  school.upVotes.remove(MyConstants.myFcmToken);
+                                  school.downVotes.add(MyConstants.myFcmToken);
+                                });
+                              }
+                              else if(school.downVotes.contains(MyConstants.myFcmToken)){
+                                viewModel.downVoteSchool(school, MyConstants.myFcmToken, true);
+                                setState(() {
+                                  school.downVotes.remove(MyConstants.myFcmToken);
+                                });
+                              }
+                              else {
+                                viewModel.downVoteSchool(
+                                    school, MyConstants.myFcmToken, false);
+                                setState(() {
+                                  school.downVotes.add(MyConstants.myFcmToken);
+                                });
+                              }
+                            },
+                            child: Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(school.downVotes.length.toString() + ' ', style: TextStyle(
+                                  color: school.downVotes.contains(MyConstants.myFcmToken) ? Colors.blue: Colors.white,
+                                  fontSize: 16,),),
+                                Icon(Icons.thumb_down_sharp, color: school.downVotes.contains(MyConstants.myFcmToken) ? Colors.blue: Colors.white,),
+                              ],
+                            ))),
+                        Padding(padding: EdgeInsets.fromLTRB(8, 0, 0, 0), child: InkWell(
+                            onTap: () {
+                              if(school.downVotes.contains(MyConstants.myFcmToken)){
+                                school.downVotes.remove(MyConstants.myFcmToken);
+                                viewModel.downVoteSchool(school, MyConstants.myFcmToken, true);
+                                viewModel.upVoteSchool(school, MyConstants.myFcmToken, false);
+                                setState(() {
+                                  school.downVotes.remove(MyConstants.myFcmToken);
+                                  school.upVotes.add(MyConstants.myFcmToken);
+                                });
+                              }
+                              else if(school.upVotes.contains(MyConstants.myFcmToken)){
+                                viewModel.upVoteSchool(school, MyConstants.myFcmToken, true);
+                                setState(() {
+                                  school.upVotes.remove(MyConstants.myFcmToken);
+                                });
+                              }
+                              else {
+                                viewModel.upVoteSchool(
+                                    school, MyConstants.myFcmToken, false);
+                                setState(() {
+                                  school.upVotes.add(MyConstants.myFcmToken);
+                                });
+                              }
+                            },
+                            child: Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Icon(Icons.thumb_up_sharp,
+                                  color: school.upVotes.contains(MyConstants.myFcmToken) ? Colors.blue: Colors.white,
+                                ),
+                                Text(' ' + school.upVotes.length.toString(), style: TextStyle(
+                                  color: school.upVotes.contains(MyConstants.myFcmToken) ? Colors.blue: Colors.white,
+                                  fontSize: 16,),),
+                              ],
+                            )))
+                      ],)
                   ],
                 ))));
   }

@@ -5,7 +5,7 @@ import 'package:sd_kids/main.dart';
 import 'package:sd_kids/models/Event.dart';
 import 'package:sd_kids/models/FirebaseResponse.dart';
 import 'package:sd_kids/viewModel/EventListViewModel.dart';
-import '../../util/constants.dart';
+import '../../util/constants.dart' as Constants;
 import '../shared/SharedWidgets.dart';
 
 class EventsListScreen extends StatefulWidget {
@@ -23,9 +23,15 @@ class EventsListScreen extends StatefulWidget {
 }
 
 class _EventsListScreenState extends State<EventsListScreen> {
-  final List<String> _items = [ 'Date', 'Price', 'Age group',];
+  final List<String> _items = [
+    'Date',
+    'Price',
+    'Age group',
+  ];
   bool isSortingMenuVisible = false;
   double _sortMenuHeight = 0;
+  List<String> ageGroups = [];
+  List<Event> eventsAllCategories = [];
 
   @override
   void initState() {
@@ -47,183 +53,19 @@ class _EventsListScreenState extends State<EventsListScreen> {
             color: Colors.blue,
           ));
         case Status.COMPLETED:
-          List<String> ageGroups = viewModel.response.data['ageGroups'];
+          ageGroups = viewModel.response.data['ageGroups'];
           List<String> categories = viewModel.response.data['categories'];
-          List<Event> eventsAllCategories = viewModel.response.data['events'];
+          eventsAllCategories = viewModel.response.data['events'];
           return Padding(
               padding: const EdgeInsets.fromLTRB(10, 10, 10, 80),
               child: Column(children: [
-                Text(
-                  'Events',
-                  style: TextStyle(
-                      fontSize: MyConstants.isMobile ? MyConstants.screenTitleFontSizeMobile : MyConstants.screenTitleFontSizeTablet,
-                      fontFamily: 'Jost',
-                      fontWeight: FontWeight.bold),
-                ),
-                Card(
-                    color: Colors.white70,
-                    child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          children: [
-                            Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Sort by',
-                                    style: TextStyle(
-                                        fontSize: MyConstants.isMobile ? MyConstants.sortMenuFontSizeMobile : MyConstants.sortMenuFontSizeTablet,
-                                        fontFamily: 'Jost'
-                                    ),
-                                  ),
-                                  RotatedBox(
-                                      quarterTurns:
-                                          isSortingMenuVisible ? 2 : 0,
-                                      child: IconButton(
-                                        icon: Icon(
-                                          Icons.arrow_drop_down,
-                                          size: MyConstants.isMobile ? MyConstants.iconSizeMobile : MyConstants.iconSizeTablet,
-                                        ),
-                                        onPressed: () {
-                                          setState(() {
-                                            isSortingMenuVisible =
-                                                !isSortingMenuVisible;
-                                            if (isSortingMenuVisible) {
-                                              _sortMenuHeight = MyConstants.isMobile ? 120 : 136;
-                                            } else {
-                                              _sortMenuHeight = 0;
-                                            }
-                                          });
-                                        },
-                                      )),
-                                ]),
-                            if (isSortingMenuVisible)
-                              Padding(
-                                  padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                                  child: Divider(
-                                    height: 2,
-                                  )),
-                            AnimatedContainer(
-                              curve: Curves.linearToEaseOut,
-                              duration: Duration(milliseconds: 500),
-                              height: _sortMenuHeight,
-                              child: ReorderableListView(
-                                children: <Widget>[
-                                  for (int index = 0;
-                                      index < _items.length;
-                                      index += 1)
-                                    Column(
-                                      key: Key('$index'),
-                                      children: [
-                                        Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                _items[index],
-                                                style: TextStyle(
-                                                    fontSize: MyConstants.isMobile ? MyConstants.sortMenuFontSizeMobile : MyConstants.sortMenuFontSizeTablet,
-                                                    fontFamily: 'Jost'),
-                                              ),
-                                              ReorderableDragStartListener(
-                                                  key: ValueKey<String>(
-                                                      _items[index]),
-                                                  index: index,
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.fromLTRB(
-                                                            0, 0, 10, 0),
-                                                    child: Icon(
-                                                      Icons.drag_handle,
-                                                      size: MyConstants.isMobile ? MyConstants.iconSizeMobile : MyConstants.iconSizeTablet,
-                                                    ),
-                                                  )),
-                                            ]),
-                                        SizedBox(
-                                          height: 10,
-                                        )
-                                      ],
-                                    )
-                                ],
-                                onReorder: (int oldIndex, int newIndex) {
-                                  setState(() {
-                                    if (oldIndex < newIndex) {
-                                      newIndex -= 1;
-                                    }
-                                    final String item =
-                                        _items.removeAt(oldIndex);
-                                    _items.insert(newIndex, item);
-
-                                    if (_items[0] == 'Age group' &&
-                                        _items[1] == 'Price') {
-                                      eventsAllCategories.sort((a, b) {
-                                        int cmp = ageGroups
-                                            .indexOf(a.ageGroups[0])
-                                            .compareTo(ageGroups
-                                                .indexOf(b.ageGroups[0]));
-                                        if (cmp != 0) return cmp;
-                                        return a.price.compareTo(b.price);
-                                      });
-                                    } else if (_items[0] == 'Date' &&
-                                        _items[1] == 'Price') {
-                                      eventsAllCategories.sort((a, b) {
-                                        int cmp = a.startDateTime
-                                            .compareTo(b.startDateTime);
-                                        if (cmp != 0) return cmp;
-                                        return a.price.compareTo(b.price);
-                                      });
-                                    } else if (_items[0] == 'Date' &&
-                                        _items[1] == 'Age group') {
-                                      eventsAllCategories.sort((a, b) {
-                                        int cmp = a.startDateTime
-                                            .compareTo(b.startDateTime);
-                                        if (cmp != 0) return cmp;
-                                        return ageGroups
-                                            .indexOf(a.ageGroups[0])
-                                            .compareTo(ageGroups
-                                                .indexOf(b.ageGroups[0]));
-                                      });
-                                    } else if (_items[0] == 'Price' &&
-                                        _items[1] == 'Age group') {
-                                      eventsAllCategories.sort((a, b) {
-                                        int cmp = a.price.compareTo(b.price);
-                                        if (cmp != 0) return cmp;
-                                        return ageGroups
-                                            .indexOf(a.ageGroups[0])
-                                            .compareTo(ageGroups
-                                                .indexOf(b.ageGroups[0]));
-                                      });
-                                    } else if (_items[0] == 'Age group' &&
-                                        _items[1] == 'Date') {
-                                      eventsAllCategories.sort((a, b) {
-                                        int cmp = ageGroups
-                                            .indexOf(a.ageGroups[0])
-                                            .compareTo(ageGroups
-                                                .indexOf(b.ageGroups[0]));
-                                        if (cmp != 0) return cmp;
-                                        return a.startDateTime
-                                            .compareTo(b.startDateTime);
-                                      });
-                                    } else if (_items[0] == 'Price' &&
-                                        _items[1] == 'Date') {
-                                      eventsAllCategories.sort((a, b) {
-                                        int cmp = a.price.compareTo(b.price);
-                                        if (cmp != 0) return cmp;
-                                        return a.startDateTime
-                                            .compareTo(b.startDateTime);
-                                      });
-                                    }
-                                  });
-                                },
-                              ),
-                            )
-                          ],
-                        ))),
+                SharedWidgets.screenTitle('Events'),
+                SharedWidgets.SortMenu(_items, _sortMenuHeight,
+                    isSortingMenuVisible, onOpenClose, onReorder),
                 SizedBox(height: 10),
                 Expanded(
                     child: SingleChildScrollView(
-                        child:Column( children: [
+                        child: Column(children: [
                   for (var category in categories)
                     eventsByCategory(
                         category,
@@ -247,7 +89,76 @@ class _EventsListScreenState extends State<EventsListScreen> {
     });
   }
 
-  Future<double> get _height => Future<double>.value(MyConstants.isMobile ? MyConstants.itemAnimatedContainerHeightMobile : MyConstants.itemAnimatedContainerHeightTablet);
+  void onOpenClose() {
+    setState(() {
+      isSortingMenuVisible = !isSortingMenuVisible;
+      if (isSortingMenuVisible) {
+        _sortMenuHeight = Constants.isMobile ? 120 : 136;
+      } else {
+        _sortMenuHeight = 0;
+      }
+    });
+  }
+
+  void onReorder(int oldIndex, int newIndex) {
+    setState(() {
+      if (oldIndex < newIndex) {
+        newIndex -= 1;
+      }
+      final String item = _items.removeAt(oldIndex);
+      _items.insert(newIndex, item);
+
+      if (_items[0] == 'Age group' && _items[1] == 'Price') {
+        eventsAllCategories.sort((a, b) {
+          int cmp = ageGroups
+              .indexOf(a.ageGroups[0])
+              .compareTo(ageGroups.indexOf(b.ageGroups[0]));
+          if (cmp != 0) return cmp;
+          return a.price.compareTo(b.price);
+        });
+      } else if (_items[0] == 'Date' && _items[1] == 'Price') {
+        eventsAllCategories.sort((a, b) {
+          int cmp = a.startDateTime.compareTo(b.startDateTime);
+          if (cmp != 0) return cmp;
+          return a.price.compareTo(b.price);
+        });
+      } else if (_items[0] == 'Date' && _items[1] == 'Age group') {
+        eventsAllCategories.sort((a, b) {
+          int cmp = a.startDateTime.compareTo(b.startDateTime);
+          if (cmp != 0) return cmp;
+          return ageGroups
+              .indexOf(a.ageGroups[0])
+              .compareTo(ageGroups.indexOf(b.ageGroups[0]));
+        });
+      } else if (_items[0] == 'Price' && _items[1] == 'Age group') {
+        eventsAllCategories.sort((a, b) {
+          int cmp = a.price.compareTo(b.price);
+          if (cmp != 0) return cmp;
+          return ageGroups
+              .indexOf(a.ageGroups[0])
+              .compareTo(ageGroups.indexOf(b.ageGroups[0]));
+        });
+      } else if (_items[0] == 'Age group' && _items[1] == 'Date') {
+        eventsAllCategories.sort((a, b) {
+          int cmp = ageGroups
+              .indexOf(a.ageGroups[0])
+              .compareTo(ageGroups.indexOf(b.ageGroups[0]));
+          if (cmp != 0) return cmp;
+          return a.startDateTime.compareTo(b.startDateTime);
+        });
+      } else if (_items[0] == 'Price' && _items[1] == 'Date') {
+        eventsAllCategories.sort((a, b) {
+          int cmp = a.price.compareTo(b.price);
+          if (cmp != 0) return cmp;
+          return a.startDateTime.compareTo(b.startDateTime);
+        });
+      }
+    });
+  }
+
+  Future<double> get _height => Future<double>.value(Constants.isMobile
+      ? Constants.itemAnimatedContainerHeightMobile
+      : Constants.itemAnimatedContainerHeightTablet);
 
   Widget eventsByCategory(
       String category, List<Event> events, List<String> categories) {
@@ -260,21 +171,13 @@ class _EventsListScreenState extends State<EventsListScreen> {
               curve: Curves.elasticOut,
               height: snapshot.data!,
               duration: Duration(milliseconds: 2000),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
+              child:
+                  Column(mainAxisAlignment: MainAxisAlignment.start, children: [
+                SharedWidgets.categoryTitleWidget(category),
                 Container(
-                    width: double.infinity,
-                    child: Padding(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 0, horizontal: 3),
-                        child: Text(category,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: MyConstants.isMobile ? MyConstants.itemTitleFontSizeMobile : MyConstants.itemTitleFontSizeTablet,
-                                fontWeight: FontWeight.bold)))),
-                Container(
-                    height: MyConstants.isMobile ? MyConstants.itemContainerHeightMobile : MyConstants.itemContainerHeightTablet,
+                    height: Constants.isMobile
+                        ? Constants.itemContainerHeightMobile
+                        : Constants.itemContainerHeightTablet,
                     child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         shrinkWrap: true,
@@ -308,9 +211,11 @@ class _EventsListScreenState extends State<EventsListScreen> {
     List<String> dateParts = date.split(', ');
     List<String> monthDayYear = dateParts[1].split('/');
     return Container(
-        width: MyConstants.isMobile ? MyConstants.itemCardWidthMobile : MyConstants.itemCardWidthTablet,
+        width: Constants.isMobile
+            ? Constants.itemCardWidthMobile
+            : Constants.itemCardWidthTablet,
         child: Card(
-            color: MyConstants.cardBgColors[categories.indexOf(category)],
+            color: Constants.cardBgColors[categories.indexOf(category)],
             child: Padding(
                 padding: const EdgeInsets.all(10),
                 child: Column(
@@ -319,22 +224,9 @@ class _EventsListScreenState extends State<EventsListScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Flexible(
-                            child: Text(
-                          event.title,
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: MyConstants.isMobile ? MyConstants.itemTitleFontSizeMobile : MyConstants.itemTitleFontSizeTablet,
-                              fontWeight: FontWeight.bold),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        )),
-                        Text(
-                          "\$${event.price}",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: MyConstants.isMobile ? MyConstants.itemTitleFontSizeMobile : MyConstants.itemTitleFontSizeTablet,
-                              fontWeight: FontWeight.bold),
+                            child: SharedWidgets.itemTitleWidget(event.title)
                         ),
+                        SharedWidgets.itemPriceWidget(event.price)
                       ],
                     ),
                     Hero(
@@ -342,53 +234,12 @@ class _EventsListScreenState extends State<EventsListScreen> {
                       child:
                           SharedWidgets.networkImageWithLoading(event.imageUrl),
                     ),
-                    const SizedBox(
-                      height: 6,
-                    ),
-                    Text(
-                      '${dateParts[0]}, ${monthDayYear[0]}/${monthDayYear[1]}, ${dateParts[2]}',
-                      style: TextStyle(
-                          fontSize: MyConstants.isMobile ? MyConstants.itemSubtitleFontSizeMobile : MyConstants.itemSubtitleFontSizeTablet,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white),
-                    ),
-                    const SizedBox(
-                      height: 4,
-                    ),
-                    Text(
-                      event.description,
-                      textAlign: TextAlign.justify,
-                      maxLines: 4,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: MyConstants.isMobile ? MyConstants.itemDescriptionFontSizeMobile : MyConstants.itemDescriptionFontSizeTablet,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    Spacer(),
-                    Row(
-                      children: [
-                        for (var group in event.ageGroups)
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 4),
-                            height: MyConstants.isMobile ? MyConstants.itemAgeGroupHeightMobile : MyConstants.itemAgeGroupHeightTablet,
-                            decoration: BoxDecoration(
-                              color: Color(0xff568f56),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(20)),
-                            ),
-                            child: Center(
-                                child: Text(
-                              group,
-                              style: TextStyle(
-                                color: Colors.white,
-                                overflow: TextOverflow.ellipsis,
-                                fontSize: MyConstants.isMobile ? MyConstants.itemAgeGroupFontSizeMobile : MyConstants.itemAgeGroupFontSizeTablet,
-                              ),
-                            )),
-                          )
-                      ],
-                    )
+                    const SizedBox(height: 6,),
+                    SharedWidgets.itemDateWidget('${dateParts[0]}, ${monthDayYear[0]}/${monthDayYear[1]}, ${dateParts[2]}'),
+                    const SizedBox(height: 4,),
+                    SharedWidgets.itemDescriptionWidget(event.description),
+                    const Spacer(),
+                    SharedWidgets.itemAgeGroupsWidget(event.ageGroups)
                   ],
                 ))));
   }

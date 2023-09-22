@@ -4,7 +4,7 @@ import 'package:sd_kids/main.dart';
 import 'package:sd_kids/models/FoodDeal.dart';
 import 'package:sd_kids/screens/shared/SharedWidgets.dart';
 import '../../models/FirebaseResponse.dart';
-import '../../util/constants.dart';
+import '../../util/constants.dart' as Constants;
 import '../../viewModel/FoodDealListViewModel.dart';
 
 class FoodDealsListScreen extends StatefulWidget {
@@ -31,6 +31,7 @@ class _FoodDealsListScreenState extends State<FoodDealsListScreen> {
   final List<String> _items = ['Age Limit', 'Up Votes'];
   bool isSortingMenuVisible = false;
   double _sortMenuHeight = 0;
+  List<FoodDeal> foodDealsAllDays = [];
 
   @override
   void initState() {
@@ -44,8 +45,6 @@ class _FoodDealsListScreenState extends State<FoodDealsListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print('Food Deal List Screen');
-
     return Consumer<FoodDealListViewModel>(
         builder: (context, viewModel, child) {
       switch (viewModel.response.status) {
@@ -55,148 +54,13 @@ class _FoodDealsListScreenState extends State<FoodDealsListScreen> {
             color: Colors.blue,
           ));
         case Status.COMPLETED:
-          List<FoodDeal> foodDealsAllDays =
+          foodDealsAllDays =
               viewModel.response.data as List<FoodDeal>;
           return Padding(
               padding: const EdgeInsets.fromLTRB(10, 10, 10, 80),
               child: Column(children: [
-                Text(
-                  'Food Deals',
-                  style: TextStyle(
-                      fontSize: MyConstants.isMobile
-                          ? MyConstants.screenTitleFontSizeMobile
-                          : MyConstants.screenTitleFontSizeTablet,
-                      fontFamily: 'Jost',
-                      fontWeight: FontWeight.bold),
-                ),
-                Card(
-                    color: Colors.white70,
-                    child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          children: [
-                            Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Sort by',
-                                    style: TextStyle(
-                                        fontSize: MyConstants.isMobile
-                                            ? MyConstants.sortMenuFontSizeMobile
-                                            : MyConstants.sortMenuFontSizeTablet,
-                                        fontFamily: 'Jost'),
-                                  ),
-                                  RotatedBox(
-                                      quarterTurns:
-                                          isSortingMenuVisible ? 2 : 0,
-                                      child: IconButton(
-                                        icon: Icon(
-                                          Icons.arrow_drop_down,
-                                          size: MyConstants.isMobile
-                                              ? MyConstants.iconSizeMobile
-                                              : MyConstants.iconSizeTablet,
-                                        ),
-                                        onPressed: () {
-                                          setState(() {
-                                            isSortingMenuVisible =
-                                                !isSortingMenuVisible;
-                                            if (isSortingMenuVisible) {
-                                              _sortMenuHeight =
-                                                  MyConstants.isMobile
-                                                      ? 80
-                                                      : 96;
-                                            } else {
-                                              _sortMenuHeight = 0;
-                                            }
-                                          });
-                                        },
-                                      )),
-                                ]),
-                            if (isSortingMenuVisible)
-                              Padding(
-                                  padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                                  child: Divider(
-                                    height: 2,
-                                  )),
-                            AnimatedContainer(
-                              curve: Curves.linearToEaseOut,
-                              duration: Duration(milliseconds: 500),
-                              height: _sortMenuHeight,
-                              child: ReorderableListView(
-                                children: <Widget>[
-                                  for (int index = 0;
-                                      index < _items.length;
-                                      index += 1)
-                                    Column(
-                                      key: Key('$index'),
-                                      children: [
-                                        Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                _items[index],
-                                                style: TextStyle(
-                                                    fontSize: MyConstants.isMobile
-                                                        ? MyConstants.sortMenuFontSizeMobile
-                                                        : MyConstants.sortMenuFontSizeTablet,
-                                                    fontFamily: 'Jost'),
-                                              ),
-                                              ReorderableDragStartListener(
-                                                  key: ValueKey<String>(
-                                                      _items[index]),
-                                                  index: index,
-                                                  child: Padding(
-                                                    padding:
-                                                        EdgeInsets.fromLTRB(
-                                                            0, 0, 10, 0),
-                                                    child: Icon(
-                                                      Icons.drag_handle,
-                                                      size: MyConstants.isMobile
-                                                          ? MyConstants.iconSizeMobile
-                                                          : MyConstants.iconSizeTablet,
-                                                    ),
-                                                  )),
-                                            ]),
-                                        SizedBox(
-                                          height: 10,
-                                        )
-                                      ],
-                                    )
-                                ],
-                                onReorder: (int oldIndex, int newIndex) {
-                                  setState(() {
-                                    if (oldIndex < newIndex) {
-                                      newIndex -= 1;
-                                    }
-                                    final String item =
-                                        _items.removeAt(oldIndex);
-                                    _items.insert(newIndex, item);
-
-                                    if (_items[0] == 'Age Limit' &&
-                                        _items[1] == 'Up Votes') {
-                                      foodDealsAllDays.sort((a, b) {
-                                        int cmp =
-                                            a.ageLimit.compareTo(b.ageLimit);
-                                        if (cmp != 0) return cmp;
-                                        return b.upVotes.length
-                                            .compareTo(a.upVotes.length);
-                                      });
-                                    } else {
-                                      foodDealsAllDays.sort((a, b) {
-                                        int cmp = b.upVotes.length
-                                            .compareTo(a.upVotes.length);
-                                        if (cmp != 0) return cmp;
-                                        return a.ageLimit.compareTo(b.ageLimit);
-                                      });
-                                    }
-                                  });
-                                },
-                              ),
-                            )
-                          ],
-                        ))),
+                SharedWidgets.screenTitle('Food Deals'),
+                SharedWidgets.SortMenu(_items, _sortMenuHeight, isSortingMenuVisible, onOpenClose, onReorder),
                 SizedBox(
                   height: 10,
                 ),
@@ -226,9 +90,10 @@ class _FoodDealsListScreenState extends State<FoodDealsListScreen> {
     });
   }
 
-  Future<double> get _height => Future<double>.value(MyConstants.isMobile
-  ? MyConstants.itemAnimatedContainerShortHeightMobile
-  : MyConstants.itemAnimatedContainerShortHeightTablet);
+
+  Future<double> get _height => Future<double>.value(Constants.isMobile
+      ? Constants.itemAnimatedContainerShortHeightMobile - 25
+      : Constants.itemAnimatedContainerShortHeightTablet - 25);
 
   Widget foodDealsByDayOfWeek(FoodDealListViewModel viewModel, String dayOfWeek,
       List<FoodDeal> foodDeals) {
@@ -242,22 +107,11 @@ class _FoodDealsListScreenState extends State<FoodDealsListScreen> {
               height: snapshot.data!,
               duration: Duration(milliseconds: 2000),
               child: Column(children: [
+                SharedWidgets.categoryTitleWidget(dayOfWeek),
                 Container(
-                    width: double.infinity,
-                    child: Padding(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 0, horizontal: 3),
-                        child: Text(dayOfWeek,
-                            textAlign: TextAlign.start,
-                            style: TextStyle(
-                                fontSize: MyConstants.isMobile
-                                    ? MyConstants.itemTitleFontSizeMobile
-                                    : MyConstants.itemTitleFontSizeTablet,
-                                fontWeight: FontWeight.bold)))),
-                Container(
-                    height: MyConstants.isMobile
-                        ? MyConstants.itemContainerHeightShortMobile
-                        : MyConstants.itemContainerHeightShortTablet,
+                    height: Constants.isMobile
+                        ? Constants.itemContainerHeightShortMobile - 20
+                        : Constants.itemContainerHeightShortTablet - 19,
                     child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         shrinkWrap: true,
@@ -290,197 +144,228 @@ class _FoodDealsListScreenState extends State<FoodDealsListScreen> {
       String dayOfWeek,
       int index) {
     return Container(
-        width: MyConstants.isMobile
-            ? MyConstants.itemCardWidthMobile
-            : MyConstants.itemCardWidthTablet,
+        width: Constants.isMobile
+            ? Constants.itemCardWidthMobile
+            : Constants.itemCardWidthTablet,
         child: Card(
-            color: MyConstants.cardBgColors[daysOfWeek.indexOf(dayOfWeek)],
+            color: Constants.cardBgColors[daysOfWeek.indexOf(dayOfWeek)],
             child: Padding(
                 padding:
                     const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                 child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Wrap(
-                        children: [
-                          Text(
-                            foodDeal.name,
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: MyConstants.isMobile
-                                    ? MyConstants.itemTitleFontSizeMobile
-                                    : MyConstants.itemTitleFontSizeTablet,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          Hero(
-                            tag: 'food_deal_image$dayOfWeek$index',
-                            child: SharedWidgets.networkImageWithLoading(
-                                foodDeal.imageUrl),
-                          ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          Text(
-                            foodDeal.description,
-                            maxLines: 4,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: MyConstants.isMobile
-                                    ? MyConstants.itemDescriptionFontSizeMobile
-                                    : MyConstants.itemDescriptionFontSizeTablet,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ],
+                      SharedWidgets.itemTitleWidget(foodDeal.name),
+                      Hero(
+                        tag: 'food_deal_image$dayOfWeek$index',
+                        child: SharedWidgets.networkImageWithLoading(
+                            foodDeal.imageUrl),
                       ),
+                      SizedBox(height: 8,),
+                      SharedWidgets.itemDescriptionWidget(foodDeal.description),
+                      const Spacer(),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Age Limit: ${foodDeal.ageLimit}',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: MyConstants.isMobile
-                                  ? MyConstants.itemFooterFontSizeMobile
-                                  : MyConstants.itemFooterFontSizeTablet,
-                            ),
-                          ),
-                          Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.end,
-                            children: [
-                              Padding(
-                                  padding: EdgeInsets.fromLTRB(0, 0, 8, 0),
-                                  child: InkWell(
-                                      onTap: () {
-                                        if (foodDeal.upVotes
-                                            .contains(MyConstants.myFcmToken)) {
-                                          foodDeal.upVotes
-                                              .remove(MyConstants.myFcmToken);
-                                          viewModel.upVoteFoodDeal(foodDeal,
-                                              MyConstants.myFcmToken, true);
-                                          viewModel.downVoteFoodDeal(foodDeal,
-                                              MyConstants.myFcmToken, false);
-                                          setState(() {
-                                            foodDeal.upVotes
-                                                .remove(MyConstants.myFcmToken);
-                                            foodDeal.downVotes
-                                                .add(MyConstants.myFcmToken);
-                                          });
-                                        } else if (foodDeal.downVotes
-                                            .contains(MyConstants.myFcmToken)) {
-                                          viewModel.downVoteFoodDeal(foodDeal,
-                                              MyConstants.myFcmToken, true);
-                                          setState(() {
-                                            foodDeal.downVotes
-                                                .remove(MyConstants.myFcmToken);
-                                          });
-                                        } else {
-                                          viewModel.downVoteFoodDeal(foodDeal,
-                                              MyConstants.myFcmToken, false);
-                                          setState(() {
-                                            foodDeal.downVotes
-                                                .add(MyConstants.myFcmToken);
-                                          });
-                                        }
-                                      },
-                                      child: Wrap(
-                                        crossAxisAlignment:
-                                            WrapCrossAlignment.center,
-                                        children: [
-                                          Text(
-                                            foodDeal.downVotes.length
-                                                    .toString() +
-                                                ' ',
-                                            style: TextStyle(
-                                              color: foodDeal.downVotes
-                                                      .contains(MyConstants
-                                                          .myFcmToken)
-                                                  ? Colors.blue
-                                                  : Colors.white,
-                                              fontSize: MyConstants.isMobile
-                                                  ? MyConstants
-                                                      .itemFooterFontSizeMobile
-                                                  : MyConstants
-                                                      .itemFooterFontSizeTablet,
-                                            ),
-                                          ),
-                                          Icon(
-                                            Icons.thumb_down_sharp,
-                                            size: MyConstants.iconSizeMobile,
-                                            color: foodDeal.downVotes.contains(
-                                                    MyConstants.myFcmToken)
-                                                ? Colors.blue
-                                                : Colors.white,
-                                          ),
-                                        ],
-                                      ))),
-                              Padding(
-                                  padding: EdgeInsets.fromLTRB(8, 0, 0, 0),
-                                  child: InkWell(
-                                      onTap: () {
-                                        if (foodDeal.downVotes
-                                            .contains(MyConstants.myFcmToken)) {
-                                          foodDeal.downVotes
-                                              .remove(MyConstants.myFcmToken);
-                                          viewModel.downVoteFoodDeal(foodDeal,
-                                              MyConstants.myFcmToken, true);
-                                          viewModel.upVoteFoodDeal(foodDeal,
-                                              MyConstants.myFcmToken, false);
-                                          setState(() {
-                                            foodDeal.downVotes
-                                                .remove(MyConstants.myFcmToken);
-                                            foodDeal.upVotes
-                                                .add(MyConstants.myFcmToken);
-                                          });
-                                        } else if (foodDeal.upVotes
-                                            .contains(MyConstants.myFcmToken)) {
-                                          viewModel.upVoteFoodDeal(foodDeal,
-                                              MyConstants.myFcmToken, true);
-                                          setState(() {
-                                            foodDeal.upVotes
-                                                .remove(MyConstants.myFcmToken);
-                                          });
-                                        } else {
-                                          viewModel.upVoteFoodDeal(foodDeal,
-                                              MyConstants.myFcmToken, false);
-                                          setState(() {
-                                            foodDeal.upVotes
-                                                .add(MyConstants.myFcmToken);
-                                          });
-                                        }
-                                      },
-                                      child: Wrap(
-                                        crossAxisAlignment:
-                                            WrapCrossAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.thumb_up_sharp,
-                                            size: MyConstants.iconSizeMobile,
-                                            color: foodDeal.upVotes.contains(
-                                                    MyConstants.myFcmToken)
-                                                ? Colors.blue
-                                                : Colors.white,
-                                          ),
-                                          Text(
-                                            ' ' +
-                                                foodDeal.upVotes.length
-                                                    .toString(),
-                                            style: TextStyle(
-                                              color: foodDeal.upVotes.contains(
-                                                      MyConstants.myFcmToken)
-                                                  ? Colors.blue
-                                                  : Colors.white,
-                                              fontSize: MyConstants.isMobile
-                                                  ? MyConstants.itemFooterFontSizeMobile
-                                                  : MyConstants.itemFooterFontSizeTablet,
-                                            ),
-                                          ),
-                                        ],
-                                      )))
-                            ],
-                          )
+                          ageLimitTextWidget(foodDeal.ageLimit),
+                          likeDislikeWidget(foodDeal, viewModel)
                         ],
                       )
                     ]))));
+  }
+  
+  Widget likeDislikeWidget(FoodDeal foodDeal, FoodDealListViewModel viewModel){
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.end,
+      children: [
+        Padding(
+            padding: EdgeInsets.fromLTRB(0, 0, 8, 0),
+            child: InkWell(
+                onTap: () {
+                  if (foodDeal.upVotes
+                      .contains(Constants.myFcmToken)) {
+                    foodDeal.upVotes
+                        .remove(Constants.myFcmToken);
+                    viewModel.upVoteFoodDeal(foodDeal,
+                        Constants.myFcmToken, true);
+                    viewModel.downVoteFoodDeal(foodDeal,
+                        Constants.myFcmToken, false);
+                    setState(() {
+                      foodDeal.upVotes
+                          .remove(Constants.myFcmToken);
+                      foodDeal.downVotes
+                          .add(Constants.myFcmToken);
+                    });
+                  } else if (foodDeal.downVotes
+                      .contains(Constants.myFcmToken)) {
+                    viewModel.downVoteFoodDeal(foodDeal,
+                        Constants.myFcmToken, true);
+                    setState(() {
+                      foodDeal.downVotes
+                          .remove(Constants.myFcmToken);
+                    });
+                  } else {
+                    viewModel.downVoteFoodDeal(foodDeal,
+                        Constants.myFcmToken, false);
+                    setState(() {
+                      foodDeal.downVotes
+                          .add(Constants.myFcmToken);
+                    });
+                  }
+                },
+                child: Wrap(
+                  crossAxisAlignment:
+                  WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      foodDeal.downVotes.length
+                          .toString() +
+                          ' ',
+                      style: TextStyle(
+                        color: foodDeal.downVotes
+                            .contains(Constants
+                            .myFcmToken)
+                            ? Colors.blue
+                            : Colors.white,
+                        fontSize: Constants.isMobile
+                            ? Constants
+                            .itemFooterFontSizeMobile
+                            : Constants
+                            .itemFooterFontSizeTablet,
+                      ),
+                    ),
+                    Icon(
+                      Icons.thumb_down_sharp,
+                      size: Constants.iconSizeMobile,
+                      color: foodDeal.downVotes.contains(
+                          Constants.myFcmToken)
+                          ? Colors.blue
+                          : Colors.white,
+                    ),
+                  ],
+                ))),
+        Padding(
+            padding: EdgeInsets.fromLTRB(8, 0, 0, 0),
+            child: InkWell(
+                onTap: () {
+                  if (foodDeal.downVotes
+                      .contains(Constants.myFcmToken)) {
+                    foodDeal.downVotes
+                        .remove(Constants.myFcmToken);
+                    viewModel.downVoteFoodDeal(foodDeal,
+                        Constants.myFcmToken, true);
+                    viewModel.upVoteFoodDeal(foodDeal,
+                        Constants.myFcmToken, false);
+                    setState(() {
+                      foodDeal.downVotes
+                          .remove(Constants.myFcmToken);
+                      foodDeal.upVotes
+                          .add(Constants.myFcmToken);
+                    });
+                  } else if (foodDeal.upVotes
+                      .contains(Constants.myFcmToken)) {
+                    viewModel.upVoteFoodDeal(foodDeal,
+                        Constants.myFcmToken, true);
+                    setState(() {
+                      foodDeal.upVotes
+                          .remove(Constants.myFcmToken);
+                    });
+                  } else {
+                    viewModel.upVoteFoodDeal(foodDeal,
+                        Constants.myFcmToken, false);
+                    setState(() {
+                      foodDeal.upVotes
+                          .add(Constants.myFcmToken);
+                    });
+                  }
+                },
+                child: Wrap(
+                  crossAxisAlignment:
+                  WrapCrossAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.thumb_up_sharp,
+                      size: Constants.iconSizeMobile,
+                      color: foodDeal.upVotes.contains(
+                          Constants.myFcmToken)
+                          ? Colors.blue
+                          : Colors.white,
+                    ),
+                    Text(
+                      ' ' +
+                          foodDeal.upVotes.length
+                              .toString(),
+                      style: TextStyle(
+                        color: foodDeal.upVotes.contains(
+                            Constants.myFcmToken)
+                            ? Colors.blue
+                            : Colors.white,
+                        fontSize: Constants.isMobile
+                            ? Constants
+                            .itemFooterFontSizeMobile
+                            : Constants
+                            .itemFooterFontSizeTablet,
+                      ),
+                    ),
+                  ],
+                )))
+      ],
+    );
+  }
+  
+  Widget ageLimitTextWidget(int ageLimit){
+    return                           Text(
+      'Age Limit: $ageLimit',
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: Constants.isMobile
+            ? Constants.itemFooterFontSizeMobile
+            : Constants.itemFooterFontSizeTablet,
+      ),
+    );
+  }
+
+
+  void onOpenClose(){
+    setState(() {
+      isSortingMenuVisible =
+      !isSortingMenuVisible;
+      if (isSortingMenuVisible) {
+        _sortMenuHeight =
+        Constants.isMobile
+            ? 80
+            : 96;
+      } else {
+        _sortMenuHeight = 0;
+      }
+    });
+  }
+
+  void onReorder(int oldIndex, int newIndex){
+    setState(() {
+      if (oldIndex < newIndex) {
+        newIndex -= 1;
+      }
+      final String item =
+      _items.removeAt(oldIndex);
+      _items.insert(newIndex, item);
+
+      if (_items[0] == 'Age Limit' &&
+          _items[1] == 'Up Votes') {
+        foodDealsAllDays.sort((a, b) {
+          int cmp =
+          a.ageLimit.compareTo(b.ageLimit);
+          if (cmp != 0) return cmp;
+          return b.upVotes.length
+              .compareTo(a.upVotes.length);
+        });
+      } else {
+        foodDealsAllDays.sort((a, b) {
+          int cmp = b.upVotes.length
+              .compareTo(a.upVotes.length);
+          if (cmp != 0) return cmp;
+          return a.ageLimit.compareTo(b.ageLimit);
+        });
+      }
+    });
   }
 }

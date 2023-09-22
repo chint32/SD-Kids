@@ -2,12 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sd_kids/models/RecCenter.dart';
-import 'package:sd_kids/util/constants.dart';
-
 import '../../main.dart';
 import '../../models/FirebaseResponse.dart';
 import '../../viewModel/RecCenterListViewModel.dart';
 import '../shared/SharedWidgets.dart';
+import 'package:sd_kids/util/constants.dart' as Constants;
 
 class RecCentersListScreen extends StatefulWidget {
   final GlobalKey<NavigatorState> navKey;
@@ -21,6 +20,10 @@ class RecCentersListScreen extends StatefulWidget {
 }
 
 class _RecCentersListScreenState extends State<RecCentersListScreen> {
+  bool needToAnimate = true;
+
+  Future<double> get _height => Future<double>.value(344);
+
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -33,36 +36,28 @@ class _RecCentersListScreenState extends State<RecCentersListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print('Rec Centers List Screen');
     return Consumer<RecCenterListViewModel>(
         builder: (context, viewModel, child) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
             child: SingleChildScrollView(
                 child: Column(children: <Widget>[
-              const Text(
-                'Rec Centers',
-                style: TextStyle(
-                    fontSize: 24,
-                    fontFamily: 'Jost',
-                    fontWeight: FontWeight.bold),
-              ),
+              SharedWidgets.screenTitle('Rec Centers'),
               SizedBox(
                   height: MediaQuery.of(context).size.height * .85,
-                  child: RecCentersListWidget(
-                      context, viewModel, viewModel.response))
+                  child: RecCentersListWidget(context, viewModel))
             ]))));
   }
 
-  Widget RecCentersListWidget(BuildContext context,
-      RecCenterListViewModel viewModel, FirebaseResponse firebaseResponse) {
-    switch (firebaseResponse.status) {
+  Widget RecCentersListWidget(
+      BuildContext context, RecCenterListViewModel viewModel) {
+    switch (viewModel.response.status) {
       case Status.LOADING:
         return const Center(
             child: CircularProgressIndicator(
           color: Colors.blue,
         ));
       case Status.COMPLETED:
-        List<RecCenter> recCenters = firebaseResponse.data as List<RecCenter>;
+        List<RecCenter> recCenters = viewModel.response.data as List<RecCenter>;
         return NotificationListener<ScrollEndNotification>(
             onNotification: (notification) {
               needToAnimate = false;
@@ -79,7 +74,6 @@ class _RecCentersListScreenState extends State<RecCentersListScreen> {
                       padding: EdgeInsets.symmetric(vertical: 10),
                       child: InkWell(
                           onTap: () {
-                            print('navigating to thing to do detail');
                             widget.appBarChange();
                             widget.navKey.currentState!.pushNamed(
                                 NavRoutes.recCenterDetailsRoute,
@@ -103,10 +97,6 @@ class _RecCentersListScreenState extends State<RecCentersListScreen> {
     }
   }
 
-  bool needToAnimate = true;
-
-  Future<double> get _height => Future<double>.value(344);
-
   Widget RecCentersListItemWidget(BuildContext context,
       RecCenterListViewModel viewModel, RecCenter recCenter, int index) {
     return FutureBuilder<double>(
@@ -114,167 +104,184 @@ class _RecCentersListScreenState extends State<RecCentersListScreen> {
         initialData: 0.0,
         builder: (context, snapshot) {
           return AnimatedContainer(
-              curve: Curves.elasticOut,
-              height: needToAnimate ? snapshot.data! : 344,
-              duration: Duration(milliseconds: 2000),
-              child: Card(
-                color: MyConstants.cardBgColors[index],
-                child: Padding(
+            curve: Curves.elasticOut,
+            height: needToAnimate ? snapshot.data! : 344,
+            duration: Duration(milliseconds: 1000),
+            child: Card(
+              color: Constants.cardBgColors[index],
+              child: Padding(
                   padding:
                       const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Wrap(children: [
-                        Text(
-                          recCenter.name,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Hero(
-                          tag: 'rec_center_image$index',
-                          child: SharedWidgets.networkImageWithLoading(
-                              recCenter.imageUrl),
-                        ),
-                        Text(
-                          recCenter.description,
-                          maxLines: 4,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ]),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Padding(
-                              padding: EdgeInsets.fromLTRB(0, 0, 8, 0),
-                              child: InkWell(
-                                  onTap: () {
-                                    if (recCenter.upVotes
-                                        .contains(MyConstants.myFcmToken)) {
-                                      recCenter.upVotes
-                                          .remove(MyConstants.myFcmToken);
-                                      viewModel.upVoteRecCenter(recCenter,
-                                          MyConstants.myFcmToken, true);
-                                      viewModel.downVoteRecCenter(recCenter,
-                                          MyConstants.myFcmToken, false);
-                                      setState(() {
-                                        recCenter.upVotes
-                                            .remove(MyConstants.myFcmToken);
-                                        recCenter.downVotes
-                                            .add(MyConstants.myFcmToken);
-                                      });
-                                    } else if (recCenter.downVotes
-                                        .contains(MyConstants.myFcmToken)) {
-                                      viewModel.downVoteRecCenter(recCenter,
-                                          MyConstants.myFcmToken, true);
-                                      setState(() {
-                                        recCenter.downVotes
-                                            .remove(MyConstants.myFcmToken);
-                                      });
-                                    } else {
-                                      viewModel.downVoteRecCenter(recCenter,
-                                          MyConstants.myFcmToken, false);
-                                      setState(() {
-                                        recCenter.downVotes
-                                            .add(MyConstants.myFcmToken);
-                                      });
-                                    }
-                                  },
-                                  child: Wrap(
-                                    crossAxisAlignment:
-                                        WrapCrossAlignment.center,
-                                    children: [
-                                      Text(
-                                        recCenter.downVotes.length.toString() +
-                                            ' ',
-                                        style: TextStyle(
-                                          color: recCenter.downVotes.contains(
-                                                  MyConstants.myFcmToken)
-                                              ? Colors.blue
-                                              : Colors.white,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                      Icon(
-                                        Icons.thumb_down_sharp,
-                                        color: recCenter.downVotes.contains(
-                                                MyConstants.myFcmToken)
-                                            ? Colors.blue
-                                            : Colors.white,
-                                      ),
-                                    ],
-                                  ))),
-                          Padding(
-                              padding: EdgeInsets.fromLTRB(8, 0, 0, 0),
-                              child: InkWell(
-                                  onTap: () {
-                                    if (recCenter.downVotes
-                                        .contains(MyConstants.myFcmToken)) {
-                                      recCenter.downVotes
-                                          .remove(MyConstants.myFcmToken);
-                                      viewModel.downVoteRecCenter(recCenter,
-                                          MyConstants.myFcmToken, true);
-                                      viewModel.upVoteRecCenter(recCenter,
-                                          MyConstants.myFcmToken, false);
-                                      setState(() {
-                                        recCenter.downVotes
-                                            .remove(MyConstants.myFcmToken);
-                                        recCenter.upVotes
-                                            .add(MyConstants.myFcmToken);
-                                      });
-                                    } else if (recCenter.upVotes
-                                        .contains(MyConstants.myFcmToken)) {
-                                      viewModel.upVoteRecCenter(recCenter,
-                                          MyConstants.myFcmToken, true);
-                                      setState(() {
-                                        recCenter.upVotes
-                                            .remove(MyConstants.myFcmToken);
-                                      });
-                                    } else {
-                                      viewModel.upVoteRecCenter(recCenter,
-                                          MyConstants.myFcmToken, false);
-                                      setState(() {
-                                        recCenter.upVotes
-                                            .add(MyConstants.myFcmToken);
-                                      });
-                                    }
-                                  },
-                                  child: Wrap(
-                                    crossAxisAlignment:
-                                        WrapCrossAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.thumb_up_sharp,
-                                        color: recCenter.upVotes.contains(
-                                                MyConstants.myFcmToken)
-                                            ? Colors.blue
-                                            : Colors.white,
-                                      ),
-                                      Text(
-                                        ' ' +
-                                            recCenter.upVotes.length.toString(),
-                                        style: TextStyle(
-                                          color: recCenter.upVotes.contains(
-                                                  MyConstants.myFcmToken)
-                                              ? Colors.blue
-                                              : Colors.white,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                    ],
-                                  )))
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-              ));
+                  child: Constants.isMobile
+                      ? itemMobile(recCenter, viewModel, index)
+                      : itemTablet(recCenter, viewModel, index)),
+            ),
+          );
         });
+  }
+
+  Widget itemMobile(
+      RecCenter recCenter, RecCenterListViewModel viewModel, int index) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        SharedWidgets.itemTitleWidget(recCenter.name),
+        Hero(
+          tag: 'park_and_pool_image$index',
+          child: SharedWidgets.networkImageWithLoading(recCenter.imageUrl),
+        ),
+        Padding(
+            padding: EdgeInsets.symmetric(vertical: 2),
+            child: SharedWidgets.itemDescriptionWidget(recCenter.description)),
+        likesDislikesWidget(recCenter, viewModel)
+      ],
+    );
+  }
+
+  Widget likesDislikesWidget(
+      RecCenter recCenter, RecCenterListViewModel viewModel) {
+    return Wrap(
+      children: [
+        Padding(
+            padding: EdgeInsets.fromLTRB(16, 0, 12, 0),
+            child: InkWell(
+                onTap: () {
+                  if (recCenter.upVotes.contains(Constants.myFcmToken)) {
+                    recCenter.upVotes.remove(Constants.myFcmToken);
+                    viewModel.upVoteRecCenter(
+                        recCenter, Constants.myFcmToken, true);
+                    viewModel.downVoteRecCenter(
+                        recCenter, Constants.myFcmToken, false);
+                    setState(() {
+                      recCenter.upVotes.remove(Constants.myFcmToken);
+                      recCenter.downVotes.add(Constants.myFcmToken);
+                    });
+                  } else if (recCenter.downVotes
+                      .contains(Constants.myFcmToken)) {
+                    viewModel.downVoteRecCenter(
+                        recCenter, Constants.myFcmToken, true);
+                    setState(() {
+                      recCenter.downVotes.remove(Constants.myFcmToken);
+                    });
+                  } else {
+                    viewModel.downVoteRecCenter(
+                        recCenter, Constants.myFcmToken, false);
+                    setState(() {
+                      recCenter.downVotes.add(Constants.myFcmToken);
+                    });
+                  }
+                },
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      recCenter.downVotes.length.toString() + ' ',
+                      style: TextStyle(
+                        color:
+                            recCenter.downVotes.contains(Constants.myFcmToken)
+                                ? Colors.blue
+                                : Colors.white,
+                        fontSize: Constants.itemFooterFontSizeMobile,
+                      ),
+                    ),
+                    Icon(
+                      Icons.thumb_down_sharp,
+                      color: recCenter.downVotes.contains(Constants.myFcmToken)
+                          ? Colors.blue
+                          : Colors.white,
+                    ),
+                  ],
+                ))),
+        Padding(
+            padding: EdgeInsets.fromLTRB(12, 0, 0, 0),
+            child: InkWell(
+                onTap: () {
+                  if (recCenter.downVotes.contains(Constants.myFcmToken)) {
+                    recCenter.downVotes.remove(Constants.myFcmToken);
+                    viewModel.downVoteRecCenter(
+                        recCenter, Constants.myFcmToken, true);
+                    viewModel.downVoteRecCenter(
+                        recCenter, Constants.myFcmToken, false);
+                    setState(() {
+                      recCenter.downVotes.remove(Constants.myFcmToken);
+                      recCenter.upVotes.add(Constants.myFcmToken);
+                    });
+                  } else if (recCenter.upVotes.contains(Constants.myFcmToken)) {
+                    viewModel.upVoteRecCenter(
+                        recCenter, Constants.myFcmToken, true);
+                    setState(() {
+                      recCenter.upVotes.remove(Constants.myFcmToken);
+                    });
+                  } else {
+                    viewModel.upVoteRecCenter(
+                        recCenter, Constants.myFcmToken, false);
+                    setState(() {
+                      recCenter.upVotes.add(Constants.myFcmToken);
+                    });
+                  }
+                },
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.thumb_up_sharp,
+                      color: recCenter.upVotes.contains(Constants.myFcmToken)
+                          ? Colors.blue
+                          : Colors.white,
+                    ),
+                    Text(
+                      ' ' + recCenter.upVotes.length.toString(),
+                      style: TextStyle(
+                        color: recCenter.upVotes.contains(Constants.myFcmToken)
+                            ? Colors.blue
+                            : Colors.white,
+                        fontSize: Constants.itemFooterFontSizeMobile,
+                      ),
+                    ),
+                  ],
+                )))
+      ],
+    );
+  }
+
+  Widget itemTablet(
+      RecCenter recCenter, RecCenterListViewModel viewModel, int index) {
+    return Column(
+      children: [
+        Text(
+          recCenter.name,
+          style: TextStyle(
+              color: Colors.white,
+              fontSize: Constants.itemTitleFontSizeTablet,
+              fontWeight: FontWeight.bold),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: [
+                Hero(
+                  tag: 'park_and_pool_image$index',
+                  child:
+                      SharedWidgets.networkImageWithLoading(recCenter.imageUrl),
+                ),
+                Expanded(
+                    child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          recCenter.description,
+                          maxLines: 8,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: Constants.itemDescriptionFontSizeTablet,
+                          ),
+                        ))),
+              ],
+            )),
+       likesDislikesWidget(recCenter, viewModel)
+      ],
+    );
   }
 }

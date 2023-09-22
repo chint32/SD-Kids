@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/FoodDeal.dart';
-import '../../viewModel/EventDetailViewModel.dart';
 
 class FoodDealDetailScreen extends StatefulWidget {
   final FoodDeal foodDeal;
@@ -19,7 +18,6 @@ class FoodDealDetailScreen extends StatefulWidget {
 }
 
 class _FoodDealDetailScreenState extends State<FoodDealDetailScreen> {
-  final viewModel = EventDetailViewModel();
 
   @override
   Widget build(BuildContext context) {

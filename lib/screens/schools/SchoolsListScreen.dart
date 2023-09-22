@@ -6,7 +6,7 @@ import 'package:sd_kids/models/School.dart';
 import 'package:sd_kids/viewModel/SchoolsListViewModel.dart';
 
 import '../../models/FirebaseResponse.dart';
-import '../../util/constants.dart';
+import '../../util/constants.dart' as Constants;
 import '../shared/SharedWidgets.dart';
 
 class SchoolsListScreen extends StatefulWidget {
@@ -38,7 +38,10 @@ class _SchoolsListScreenState extends State<SchoolsListScreen> {
     return Consumer<SchoolsListViewModel>(builder: (context, viewModel, child) {
       switch (viewModel.response.status) {
         case Status.LOADING:
-          return const Center(child: CircularProgressIndicator(color: Colors.blue,));
+          return const Center(
+              child: CircularProgressIndicator(
+            color: Colors.blue,
+          ));
         case Status.COMPLETED:
           List<String> types = viewModel.response.data['types'];
           List<School> schoolsAllTypes = viewModel.response.data['schools'];
@@ -46,16 +49,10 @@ class _SchoolsListScreenState extends State<SchoolsListScreen> {
               padding: const EdgeInsets.fromLTRB(10, 10, 10, 80),
               child: SingleChildScrollView(
                   child: Column(children: <Widget>[
-                const Text(
-                  'Schools',
-                  style: TextStyle(
-                      fontSize: 24,
-                      fontFamily: 'Jost',
-                      fontWeight: FontWeight.bold),
-                ),
+                SharedWidgets.screenTitle('Schools'),
                 for (var type in types)
                   SchoolsByType(
-                    viewModel,
+                      viewModel,
                       types,
                       type,
                       schoolsAllTypes
@@ -75,9 +72,12 @@ class _SchoolsListScreenState extends State<SchoolsListScreen> {
     });
   }
 
-  Future<double> get _height => Future<double>.value(410);
+  Future<double> get _height => Future<double>.value(Constants.isMobile
+      ? Constants.itemAnimatedContainerShortHeightMobile - 10
+      : Constants.itemAnimatedContainerShortHeightTablet);
 
-  Widget SchoolsByType(SchoolsListViewModel viewModel, List<String> types, String type, List<School> schools) {
+  Widget SchoolsByType(SchoolsListViewModel viewModel, List<String> types,
+      String type, List<School> schools) {
     return FutureBuilder<double>(
         future: _height,
         initialData: 0.0,
@@ -86,7 +86,7 @@ class _SchoolsListScreenState extends State<SchoolsListScreen> {
               padding: EdgeInsets.symmetric(vertical: 10),
               curve: Curves.elasticOut,
               height: snapshot.data!,
-              duration: Duration(milliseconds: 2000),
+              duration: Duration(milliseconds: 1000),
               child: Column(children: [
                 Container(
                     width: double.infinity,
@@ -95,10 +95,15 @@ class _SchoolsListScreenState extends State<SchoolsListScreen> {
                             EdgeInsets.symmetric(vertical: 0, horizontal: 3),
                         child: Text(type,
                             textAlign: TextAlign.start,
-                            style: const TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold)))),
+                            style: TextStyle(
+                                fontSize: Constants.isMobile
+                                    ? Constants.itemTitleFontSizeMobile
+                                    : Constants.itemTitleFontSizeTablet,
+                                fontWeight: FontWeight.bold)))),
                 Container(
-                    height: 361,
+                    height: Constants.isMobile
+                        ? Constants.itemContainerHeightShortMobile - 10
+                        : Constants.itemContainerHeightShortTablet,
                     child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         shrinkWrap: true,
@@ -117,125 +122,174 @@ class _SchoolsListScreenState extends State<SchoolsListScreen> {
                                       'index': index
                                     });
                               },
-                              child: SchoolListItemWidget(
-                                  context, viewModel, schools[index], types, type, index));
+                              child: SchoolListItemWidget(context, viewModel,
+                                  schools[index], types, type, index));
                         }))
               ]));
         });
   }
 
-  Widget SchoolListItemWidget(BuildContext context, SchoolsListViewModel viewModel, School school,
-      List<String> types, String type, int index) {
+  Widget SchoolListItemWidget(
+      BuildContext context,
+      SchoolsListViewModel viewModel,
+      School school,
+      List<String> types,
+      String type,
+      int index) {
     return Container(
-        width: 300,
-        height: 280,
+        width: Constants.isMobile
+            ? Constants.itemCardWidthMobile
+            : Constants.itemCardWidthTablet,
         child: Card(
-            color: MyConstants.cardBgColors[types.indexOf(type)],
+            color: Constants.cardBgColors[types.indexOf(type)],
             child: Padding(
                 padding: const EdgeInsets.all(10),
                 child: Column(
                   children: [
-                    Text(
-                      school.name,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    SharedWidgets.itemTitleWidget(school.name),
                     Hero(
                       tag: 'school_image$type$index',
-                      child: SharedWidgets.networkImageWithLoading(school.imageUrl),
+                      child: SharedWidgets.networkImageWithLoading(
+                          school.imageUrl),
                     ),
                     const SizedBox(
                       height: 8,
                     ),
-                    Text(
-                      school.description,
-                      maxLines: 4,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Padding(padding: EdgeInsets.fromLTRB(0,0,8,0), child:InkWell(
-                            onTap: () {
-
-                              if(school.upVotes.contains(MyConstants.myFcmToken)){
-                                school.upVotes.remove(MyConstants.myFcmToken);
-                                viewModel.upVoteSchool(school, MyConstants.myFcmToken, true);
-                                viewModel.downVoteSchool(school, MyConstants.myFcmToken, false);
-                                setState(() {
-                                  school.upVotes.remove(MyConstants.myFcmToken);
-                                  school.downVotes.add(MyConstants.myFcmToken);
-                                });
-                              }
-                              else if(school.downVotes.contains(MyConstants.myFcmToken)){
-                                viewModel.downVoteSchool(school, MyConstants.myFcmToken, true);
-                                setState(() {
-                                  school.downVotes.remove(MyConstants.myFcmToken);
-                                });
-                              }
-                              else {
-                                viewModel.downVoteSchool(
-                                    school, MyConstants.myFcmToken, false);
-                                setState(() {
-                                  school.downVotes.add(MyConstants.myFcmToken);
-                                });
-                              }
-                            },
-                            child: Wrap(
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              children: [
-                                Text(school.downVotes.length.toString() + ' ', style: TextStyle(
-                                  color: school.downVotes.contains(MyConstants.myFcmToken) ? Colors.blue: Colors.white,
-                                  fontSize: 16,),),
-                                Icon(Icons.thumb_down_sharp, color: school.downVotes.contains(MyConstants.myFcmToken) ? Colors.blue: Colors.white,),
-                              ],
-                            ))),
-                        Padding(padding: EdgeInsets.fromLTRB(8, 0, 0, 0), child: InkWell(
-                            onTap: () {
-                              if(school.downVotes.contains(MyConstants.myFcmToken)){
-                                school.downVotes.remove(MyConstants.myFcmToken);
-                                viewModel.downVoteSchool(school, MyConstants.myFcmToken, true);
-                                viewModel.upVoteSchool(school, MyConstants.myFcmToken, false);
-                                setState(() {
-                                  school.downVotes.remove(MyConstants.myFcmToken);
-                                  school.upVotes.add(MyConstants.myFcmToken);
-                                });
-                              }
-                              else if(school.upVotes.contains(MyConstants.myFcmToken)){
-                                viewModel.upVoteSchool(school, MyConstants.myFcmToken, true);
-                                setState(() {
-                                  school.upVotes.remove(MyConstants.myFcmToken);
-                                });
-                              }
-                              else {
-                                viewModel.upVoteSchool(
-                                    school, MyConstants.myFcmToken, false);
-                                setState(() {
-                                  school.upVotes.add(MyConstants.myFcmToken);
-                                });
-                              }
-                            },
-                            child: Wrap(
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              children: [
-                                Icon(Icons.thumb_up_sharp,
-                                  color: school.upVotes.contains(MyConstants.myFcmToken) ? Colors.blue: Colors.white,
-                                ),
-                                Text(' ' + school.upVotes.length.toString(), style: TextStyle(
-                                  color: school.upVotes.contains(MyConstants.myFcmToken) ? Colors.blue: Colors.white,
-                                  fontSize: 16,),),
-                              ],
-                            )))
-                      ],)
+                    SharedWidgets.itemDescriptionWidget(school.description),
+                    Spacer(),
+                    likesDislikesWidget(school, viewModel)
                   ],
                 ))));
+  }
+  
+  Widget likesDislikesWidget(School school, SchoolsListViewModel viewModel){
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Padding(
+            padding: EdgeInsets.fromLTRB(0, 0, 8, 0),
+            child: InkWell(
+                onTap: () {
+                  if (school.upVotes
+                      .contains(Constants.myFcmToken)) {
+                    school.upVotes.remove(Constants.myFcmToken);
+                    viewModel.upVoteSchool(
+                        school, Constants.myFcmToken, true);
+                    viewModel.downVoteSchool(
+                        school, Constants.myFcmToken, false);
+                    setState(() {
+                      school.upVotes
+                          .remove(Constants.myFcmToken);
+                      school.downVotes
+                          .add(Constants.myFcmToken);
+                    });
+                  } else if (school.downVotes
+                      .contains(Constants.myFcmToken)) {
+                    viewModel.downVoteSchool(
+                        school, Constants.myFcmToken, true);
+                    setState(() {
+                      school.downVotes
+                          .remove(Constants.myFcmToken);
+                    });
+                  } else {
+                    viewModel.downVoteSchool(
+                        school, Constants.myFcmToken, false);
+                    setState(() {
+                      school.downVotes
+                          .add(Constants.myFcmToken);
+                    });
+                  }
+                },
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      school.downVotes.length.toString() + ' ',
+                      style: TextStyle(
+                        color: school.downVotes
+                            .contains(Constants.myFcmToken)
+                            ? Colors.blue
+                            : Colors.white,
+                        fontSize: Constants.isMobile
+                            ? Constants.itemFooterFontSizeMobile
+                            : Constants
+                            .itemFooterFontSizeTablet,
+                      ),
+                    ),
+                    Icon(
+                      Icons.thumb_down_sharp,
+                      size: Constants.isMobile
+                          ? Constants.iconSizeMobile
+                          : Constants.iconSizeTablet,
+                      color: school.downVotes
+                          .contains(Constants.myFcmToken)
+                          ? Colors.blue
+                          : Colors.white,
+                    ),
+                  ],
+                ))),
+        Padding(
+            padding: EdgeInsets.fromLTRB(8, 0, 0, 0),
+            child: InkWell(
+                onTap: () {
+                  if (school.downVotes
+                      .contains(Constants.myFcmToken)) {
+                    school.downVotes
+                        .remove(Constants.myFcmToken);
+                    viewModel.downVoteSchool(
+                        school, Constants.myFcmToken, true);
+                    viewModel.upVoteSchool(
+                        school, Constants.myFcmToken, false);
+                    setState(() {
+                      school.downVotes
+                          .remove(Constants.myFcmToken);
+                      school.upVotes.add(Constants.myFcmToken);
+                    });
+                  } else if (school.upVotes
+                      .contains(Constants.myFcmToken)) {
+                    viewModel.upVoteSchool(
+                        school, Constants.myFcmToken, true);
+                    setState(() {
+                      school.upVotes
+                          .remove(Constants.myFcmToken);
+                    });
+                  } else {
+                    viewModel.upVoteSchool(
+                        school, Constants.myFcmToken, false);
+                    setState(() {
+                      school.upVotes.add(Constants.myFcmToken);
+                    });
+                  }
+                },
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.thumb_up_sharp,
+                      size: Constants.isMobile
+                          ? Constants.iconSizeMobile
+                          : Constants.iconSizeTablet,
+                      color: school.upVotes
+                          .contains(Constants.myFcmToken)
+                          ? Colors.blue
+                          : Colors.white,
+                    ),
+                    Text(
+                      ' ' + school.upVotes.length.toString(),
+                      style: TextStyle(
+                        color: school.upVotes
+                            .contains(Constants.myFcmToken)
+                            ? Colors.blue
+                            : Colors.white,
+                        fontSize: Constants.isMobile
+                            ? Constants.itemFooterFontSizeMobile
+                            : Constants
+                            .itemFooterFontSizeTablet,
+                      ),
+                    ),
+                  ],
+                )))
+      ],
+    );
   }
 }

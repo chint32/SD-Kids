@@ -152,46 +152,6 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
     return true;
   }
 
-  // @override
-  // Future<bool> upVoteFoodDeal(
-  //     FoodDeal foodDeal, String fcmToken, bool isRemoval) async {
-  //   FirebaseFirestore.instance
-  //       .collection('food_deals')
-  //       .doc(foodDeal.id)
-  //       .update({
-  //     "upVotes": isRemoval
-  //         ? FieldValue.arrayRemove([fcmToken])
-  //         : FieldValue.arrayUnion([fcmToken])
-  //   }).then((value) {
-  //     print("DocumentSnapshot successfully updated!");
-  //     return true;
-  //   }, onError: (e) {
-  //     print("Error updating document $e");
-  //     return false;
-  //   });
-  //   return true;
-  // }
-
-  @override
-  Future<bool> downVoteFoodDeal(
-      FoodDeal foodDeal, String fcmToken, bool isRemoval) async {
-    FirebaseFirestore.instance
-        .collection('food_deals')
-        .doc(foodDeal.id)
-        .update({
-      "downVotes": isRemoval
-          ? FieldValue.arrayRemove([fcmToken])
-          : FieldValue.arrayUnion([fcmToken])
-    }).then((value) {
-      print("DocumentSnapshot successfully updated!");
-      return true;
-    }, onError: (e) {
-      print("Error updating document $e");
-      return false;
-    });
-    return true;
-  }
-
   @override
   Future<List<ParksAndPools>> getParksAndPools() async {
     QuerySnapshot snapshot =

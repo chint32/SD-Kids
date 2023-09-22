@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:provider/provider.dart';
-import 'package:sd_kids/util/constants.dart';
+import 'package:sd_kids/util/constants.dart' as Constants;
 import 'package:sd_kids/util/locator.dart';
 import 'package:sd_kids/viewModel/EventListViewModel.dart';
 import 'package:sd_kids/viewModel/FoodDealListViewModel.dart';
@@ -28,7 +28,7 @@ void setupFirebaseMessaging() async {
   );
 
   final fcmToken = await messaging.getToken();
-  MyConstants.myFcmToken = fcmToken!;
+  Constants.myFcmToken = fcmToken!;
 
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     if (message.notification != null) {

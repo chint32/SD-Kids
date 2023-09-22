@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/ThingToDo.dart';
-import '../../viewModel/EventDetailViewModel.dart';
 
 class ThingsToDoDetailScreen extends StatefulWidget {
   final ThingToDo thingToDo;

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:sd_kids/NavDrawer.dart';
 import 'package:sd_kids/main.dart';
-import 'package:sd_kids/util/constants.dart';
+import 'package:sd_kids/util/constants.dart' as Constants;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -168,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 navOptions[1],
                 .45,
                 .15,
-                MyConstants.cardBgColors[0],
+                Constants.cardBgColors[0],
                 const Icon(
                   Icons.account_balance,
                   color: Colors.white,
@@ -181,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 navOptions[3],
                 .45,
                 .15,
-                MyConstants.cardBgColors[1],
+                Constants.cardBgColors[1],
                 const Icon(
                   Icons.pool,
                   color: Colors.white,
@@ -196,7 +196,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             navOptions[0],
             .85,
             .15,
-            MyConstants.cardBgColors[3],
+            Constants.cardBgColors[3],
             const Icon(
               Icons.event,
               color: Colors.white,
@@ -212,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 navOptions[2],
                 .45,
                 .15,
-                MyConstants.cardBgColors[4],
+                Constants.cardBgColors[4],
                 const Icon(
                   Icons.fastfood,
                   color: Colors.white,
@@ -225,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 navOptions[4],
                 .45,
                 .15,
-                MyConstants.cardBgColors[5],
+                Constants.cardBgColors[5],
                 const Icon(
                   Icons.light_mode_sharp,
                   color: Colors.white,

@@ -16,7 +16,7 @@ import 'package:sd_kids/screens/schools/SchoolDetailScreen.dart';
 import 'package:sd_kids/screens/schools/SchoolsListScreen.dart';
 import 'package:sd_kids/screens/things_to_do/ThingsToDoDetailScreen.dart';
 import 'package:sd_kids/screens/things_to_do/ThingsToDoListScreen.dart';
-import 'package:sd_kids/util/constants.dart';
+import 'package:sd_kids/util/constants.dart' as Constants;
 
 class NavDrawer extends StatefulWidget {
   NavDrawer({
@@ -169,7 +169,7 @@ class _NavDrawerState extends State<NavDrawer> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    MyConstants.isMobile = MediaQuery.of(context).size.width < MyConstants.minTabletWidth;
+    Constants.isMobile = MediaQuery.of(context).size.width < Constants.minTabletWidth;
 
     return WillPopScope(
         onWillPop: () async {

@@ -31,6 +31,7 @@ class _ThingsToDoListScreenState extends State<ThingsToDoListScreen> {
 
   @override
   void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<ThingsToDoListViewModel>().clearData();
@@ -58,8 +59,8 @@ class _ThingsToDoListScreenState extends State<ThingsToDoListScreen> {
               child: Column(children: [
                 SharedWidgets.screenTitle("Things To Do"),
                 SharedWidgets.SortMenu(_sortMenuItems, _sortMenuHeight,
-                    isSortingMenuVisible, onOpenClose, onReorder),
-                ThingsToDoByCategory(
+                    isSortingMenuVisible, onMenuOpenClose, onMenuReorder),
+                ListOfThingsToDoByCategory(
                     viewModel, categories, thingsToDoAllCategories)
               ]));
         case Status.ERROR:
@@ -75,7 +76,7 @@ class _ThingsToDoListScreenState extends State<ThingsToDoListScreen> {
     });
   }
 
-  Widget ThingsToDoByCategory(ThingsToDoListViewModel viewModel,
+  Widget ListOfThingsToDoByCategory(ThingsToDoListViewModel viewModel,
       List<String> categories, List<ThingToDo> thingsToDoAllCategories) {
     return Expanded(
         child: SingleChildScrollView(
@@ -313,7 +314,7 @@ class _ThingsToDoListScreenState extends State<ThingsToDoListScreen> {
     );
   }
 
-  void onOpenClose() {
+  void onMenuOpenClose() {
     setState(() {
       isSortingMenuVisible = !isSortingMenuVisible;
       if (isSortingMenuVisible) {
@@ -324,7 +325,7 @@ class _ThingsToDoListScreenState extends State<ThingsToDoListScreen> {
     });
   }
 
-  void onReorder(int oldIndex, int newIndex) {
+  void onMenuReorder(int oldIndex, int newIndex) {
     setState(() {
       if (oldIndex < newIndex) {
         newIndex -= 1;

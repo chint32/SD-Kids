@@ -20,12 +20,12 @@ class RecCentersListScreen extends StatefulWidget {
 }
 
 class _RecCentersListScreenState extends State<RecCentersListScreen> {
-  bool needToAnimate = true;
 
   Future<double> get _height => Future<double>.value(344);
 
   @override
   void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<RecCenterListViewModel>().clearData();
@@ -39,13 +39,14 @@ class _RecCentersListScreenState extends State<RecCentersListScreen> {
     return Consumer<RecCenterListViewModel>(
         builder: (context, viewModel, child) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-            child: SingleChildScrollView(
-                child: Column(children: <Widget>[
+            child: Column(children: <Widget>[
               SharedWidgets.screenTitle('Rec Centers'),
-              SizedBox(
-                  height: MediaQuery.of(context).size.height * .85,
-                  child: RecCentersListWidget(context, viewModel))
-            ]))));
+              Expanded(
+                  child: SingleChildScrollView(
+                      child: RecCentersListWidget(context, viewModel)
+                  )
+              )
+            ])));
   }
 
   Widget RecCentersListWidget(
@@ -58,12 +59,7 @@ class _RecCentersListScreenState extends State<RecCentersListScreen> {
         ));
       case Status.COMPLETED:
         List<RecCenter> recCenters = viewModel.response.data as List<RecCenter>;
-        return NotificationListener<ScrollEndNotification>(
-            onNotification: (notification) {
-              needToAnimate = false;
-              return false;
-            },
-            child: ListView.builder(
+        return ListView.builder(
                 shrinkWrap: true,
                 physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
@@ -84,7 +80,7 @@ class _RecCentersListScreenState extends State<RecCentersListScreen> {
                           },
                           child: RecCentersListItemWidget(
                               context, viewModel, recCenters[index], index)));
-                }));
+                });
       case Status.ERROR:
         return const Center(
           child: Text('Please try again latter!!!'),
@@ -105,8 +101,8 @@ class _RecCentersListScreenState extends State<RecCentersListScreen> {
         builder: (context, snapshot) {
           return AnimatedContainer(
             curve: Curves.elasticOut,
-            height: needToAnimate ? snapshot.data! : 344,
-            duration: Duration(milliseconds: 1000),
+            height: snapshot.data,
+            duration: Duration(milliseconds: 1500),
             child: Card(
               color: Constants.cardBgColors[index],
               child: Padding(
@@ -123,7 +119,6 @@ class _RecCentersListScreenState extends State<RecCentersListScreen> {
   Widget itemMobile(
       RecCenter recCenter, RecCenterListViewModel viewModel, int index) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         SharedWidgets.itemTitleWidget(recCenter.name),
         Hero(
@@ -133,6 +128,34 @@ class _RecCentersListScreenState extends State<RecCentersListScreen> {
         Padding(
             padding: EdgeInsets.symmetric(vertical: 2),
             child: SharedWidgets.itemDescriptionWidget(recCenter.description)),
+        Row(
+          children: [const Spacer(), likesDislikesWidget(recCenter, viewModel)],
+        )
+      ],
+    );
+  }
+
+  Widget itemTablet(
+      RecCenter recCenter, RecCenterListViewModel viewModel, int index) {
+    return Column(
+      children: [
+        SharedWidgets.itemTitleWidget(recCenter.name),
+        Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: [
+                Hero(
+                  tag: 'rec_center_image$index',
+                  child:
+                      SharedWidgets.networkImageWithLoading(recCenter.imageUrl),
+                ),
+                Expanded(
+                    child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: SharedWidgets.itemDescriptionWidget(
+                            recCenter.description))),
+              ],
+            )),
         likesDislikesWidget(recCenter, viewModel)
       ],
     );
@@ -143,7 +166,7 @@ class _RecCentersListScreenState extends State<RecCentersListScreen> {
     return Wrap(
       children: [
         Padding(
-            padding: EdgeInsets.fromLTRB(16, 0, 12, 0),
+            padding: const EdgeInsets.fromLTRB(16, 0, 12, 0),
             child: InkWell(
                 onTap: () {
                   if (recCenter.upVotes.contains(Constants.myFcmToken)) {
@@ -240,47 +263,6 @@ class _RecCentersListScreenState extends State<RecCentersListScreen> {
                     ),
                   ],
                 )))
-      ],
-    );
-  }
-
-  Widget itemTablet(
-      RecCenter recCenter, RecCenterListViewModel viewModel, int index) {
-    return Column(
-      children: [
-        Text(
-          recCenter.name,
-          style: TextStyle(
-              color: Colors.white,
-              fontSize: Constants.itemTitleFontSizeTablet,
-              fontWeight: FontWeight.bold),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              children: [
-                Hero(
-                  tag: 'park_and_pool_image$index',
-                  child:
-                      SharedWidgets.networkImageWithLoading(recCenter.imageUrl),
-                ),
-                Expanded(
-                    child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          recCenter.description,
-                          maxLines: 8,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: Constants.itemDescriptionFontSizeTablet,
-                          ),
-                        ))),
-              ],
-            )),
-       likesDislikesWidget(recCenter, viewModel)
       ],
     );
   }

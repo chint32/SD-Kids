@@ -23,6 +23,7 @@ class ResourcesListScreen extends StatefulWidget {
 class _ResourcesListScreenState extends State<ResourcesListScreen> {
   @override
   void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<ResourcesListViewModel>().clearData();
@@ -33,8 +34,6 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print('Resources List Screen');
-
     return Consumer<ResourcesListViewModel>(
         builder: (context, viewModel, child) {
           switch (viewModel.response.status) {
@@ -48,18 +47,22 @@ class _ResourcesListScreenState extends State<ResourcesListScreen> {
               return Padding(
                   padding: const EdgeInsets.fromLTRB(10, 10, 10, 80),
                   child: SingleChildScrollView(
-                      child: Column(children: <Widget>[
-                        SharedWidgets.screenTitle('Resources'),
-                        for (var type in types)
-                          ResourcesByType(
+                      child: ListView.builder(
+                          shrinkWrap: true,
+                          physics: const ClampingScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8, horizontal: 4),
+                          itemCount: types.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return ResourcesByType(
                               viewModel,
-                              types,
-                              type,
-                              resourcesAllTypes
-                                  .where((resource) =>
-                                  resource.types.contains(type))
-                                  .toList())
-                      ])));
+                                types,
+                                types[index],
+                                resourcesAllTypes
+                                    .where((resource) =>
+                                    resource.types.contains(types[index]))
+                                    .toList());
+                          })));
             case Status.ERROR:
               return const Center(
                 child: Text('Please try again later!!!'),

@@ -35,6 +35,7 @@ class _FoodDealsListScreenState extends State<FoodDealsListScreen> {
 
   @override
   void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<FoodDealListViewModel>().clearData();
@@ -66,16 +67,22 @@ class _FoodDealsListScreenState extends State<FoodDealsListScreen> {
                 ),
                 Expanded(
                     child: SingleChildScrollView(
-                        child: Column(children: <Widget>[
-                  for (var dayOfWeek in daysOfWeek)
-                    foodDealsByDayOfWeek(
-                        viewModel,
-                        dayOfWeek,
-                        foodDealsAllDays
-                            .where((foodDeal) =>
-                                foodDeal.daysOfWeek.contains(dayOfWeek))
-                            .toList())
-                ])))
+                        child: ListView.builder(
+                            shrinkWrap: true,
+                            physics: const ClampingScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 4),
+                            itemCount: daysOfWeek.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return foodDealsByDayOfWeek(
+                                viewModel,
+                                  daysOfWeek[index],
+                                  foodDealsAllDays
+                                      .where((foodDeal) =>
+                                      foodDeal.daysOfWeek.contains(daysOfWeek[index]))
+                                      .toList(),
+                                  );
+                            })))
               ]));
         case Status.ERROR:
           return const Center(

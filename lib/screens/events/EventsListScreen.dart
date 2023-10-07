@@ -31,10 +31,12 @@ class _EventsListScreenState extends State<EventsListScreen> {
   bool isSortingMenuVisible = false;
   double _sortMenuHeight = 0;
   List<String> ageGroups = [];
+  List<String> categories = [];
   List<Event> eventsAllCategories = [];
 
   @override
   void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<EventListViewModel>().clearData();
@@ -45,48 +47,56 @@ class _EventsListScreenState extends State<EventsListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<EventListViewModel>(builder: (context, viewModel, child) {
-      switch (viewModel.response.status) {
-        case Status.LOADING:
-          return const Center(
-              child: CircularProgressIndicator(
-            color: Colors.blue,
-          ));
-        case Status.COMPLETED:
-          ageGroups = viewModel.response.data['ageGroups'];
-          List<String> categories = viewModel.response.data['categories'];
-          eventsAllCategories = viewModel.response.data['events'];
-          return Padding(
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 80),
-              child: Column(children: [
-                SharedWidgets.screenTitle('Events'),
-                SharedWidgets.SortMenu(_items, _sortMenuHeight,
-                    isSortingMenuVisible, onOpenClose, onReorder),
-                SizedBox(height: 10),
-                Expanded(
-                    child: SingleChildScrollView(
-                        child: Column(children: [
-                  for (var category in categories)
-                    eventsByCategory(
-                        category,
-                        eventsAllCategories
-                            .where(
-                                (event) => event.categories.contains(category))
-                            .toList(),
-                        categories)
-                ])))
-              ]));
-        case Status.ERROR:
-          return const Center(
-            child: Text('Please try again later!!!'),
-          );
-        case Status.INITIAL:
-        default:
-          return const Center(
-            child: Text('loading'),
-          );
-      }
-    });
+    return Consumer<EventListViewModel>(
+        builder: (context, viewModel, child) => Padding(
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 80),
+            child: Column(children: [
+              SharedWidgets.screenTitle('Events'),
+              SharedWidgets.SortMenu(_items, _sortMenuHeight,
+                  isSortingMenuVisible, onOpenClose, onReorder),
+              SizedBox(height: 10),
+              Expanded(
+                  child: SingleChildScrollView(
+                      child: eventsListWidget(context, viewModel)))
+            ])));
+  }
+
+  Widget eventsListWidget(
+      BuildContext buildContext, EventListViewModel viewModel) {
+    switch (viewModel.response.status) {
+      case Status.LOADING:
+        return const Center(
+            child: CircularProgressIndicator(
+          color: Colors.blue,
+        ));
+      case Status.COMPLETED:
+        ageGroups = viewModel.response.data['ageGroups'];
+        categories = viewModel.response.data['categories'];
+        eventsAllCategories = viewModel.response.data['events'];
+        return ListView.builder(
+            shrinkWrap: true,
+            physics: const ClampingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            itemCount: categories.length,
+            itemBuilder: (BuildContext context, int index) {
+              return eventsByCategory(
+                  categories[index],
+                  eventsAllCategories
+                      .where((event) =>
+                          event.categories.contains(categories[index]))
+                      .toList(),
+                  categories);
+            });
+      case Status.ERROR:
+        return const Center(
+          child: Text('Please try again later!!!'),
+        );
+      case Status.INITIAL:
+      default:
+        return const Center(
+          child: Text('loading'),
+        );
+    }
   }
 
   void onOpenClose() {
@@ -224,8 +234,7 @@ class _EventsListScreenState extends State<EventsListScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Flexible(
-                            child: SharedWidgets.itemTitleWidget(event.title)
-                        ),
+                            child: SharedWidgets.itemTitleWidget(event.title)),
                         SharedWidgets.itemPriceWidget(event.price)
                       ],
                     ),
@@ -234,9 +243,14 @@ class _EventsListScreenState extends State<EventsListScreen> {
                       child:
                           SharedWidgets.networkImageWithLoading(event.imageUrl),
                     ),
-                    const SizedBox(height: 6,),
-                    SharedWidgets.itemDateWidget('${dateParts[0]}, ${monthDayYear[0]}/${monthDayYear[1]}, ${dateParts[2]}'),
-                    const SizedBox(height: 4,),
+                    const SizedBox(
+                      height: 6,
+                    ),
+                    SharedWidgets.itemDateWidget(
+                        '${dateParts[0]}, ${monthDayYear[0]}/${monthDayYear[1]}, ${dateParts[2]}'),
+                    const SizedBox(
+                      height: 4,
+                    ),
                     SharedWidgets.itemDescriptionWidget(event.description),
                     const Spacer(),
                     SharedWidgets.itemAgeGroupsWidget(event.ageGroups)

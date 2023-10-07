@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sd_kids/models/ParksAndPools.dart';
+import '../../main.dart';
 import '../../models/FirebaseResponse.dart';
 import '../../util/constants.dart' as Constants;
 import '../../viewModel/ParksAndPoolsListViewModel.dart';
@@ -19,15 +20,15 @@ class ParksAndPoolsListScreen extends StatefulWidget {
 }
 
 class _ParksAndPoolsListScreenState extends State<ParksAndPoolsListScreen> {
-  final List<String> _items = ['Price', 'Up Votes'];
-  bool isSortingMenuVisible = false;
+  final List<String> _sortMenuItems = ['Price', 'Up Votes'];
+  bool _isSortingMenuVisible = false;
   double _sortMenuHeight = 0;
-  List<ParksAndPools> parksAndPools = [];
-  bool needToAnimate = true;
-  Future<double> get _height => Future<double>.value(360);
+  List<ParksAndPools> _parksAndPools = [];
+  Future<double> get _height => Future<double>.value(344);
 
   @override
   void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<ParksAndPoolsListViewModel>().clearData();
@@ -39,8 +40,21 @@ class _ParksAndPoolsListScreenState extends State<ParksAndPoolsListScreen> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ParksAndPoolsListViewModel>(
-        builder: (context, viewModel, child) =>
-            ParksAndPoolsListWidget(context, viewModel));
+        builder: (context, viewModel, child) {
+      return Padding(
+          padding: EdgeInsets.fromLTRB(10, 10, 10, 80),
+          child: Column(children: <Widget>[
+            SharedWidgets.screenTitle('Parks and Pools'),
+            SharedWidgets.SortMenu(_sortMenuItems, _sortMenuHeight,
+                _isSortingMenuVisible, onOpenClose, onReorder),
+            SizedBox(
+              height: 10,
+            ),
+            Expanded(
+                child: SingleChildScrollView(
+                    child: ParksAndPoolsListWidget(context, viewModel)))
+          ]));
+    });
   }
 
   Widget ParksAndPoolsListWidget(
@@ -52,24 +66,28 @@ class _ParksAndPoolsListScreenState extends State<ParksAndPoolsListScreen> {
           color: Colors.blue,
         ));
       case Status.COMPLETED:
-        parksAndPools = viewModel.response.data as List<ParksAndPools>;
-        return Padding(
-            padding: EdgeInsets.fromLTRB(10, 10, 10, 80),
-            child: Column(children: <Widget>[
-              SharedWidgets.screenTitle('Parks and Pools'),
-              SharedWidgets.SortMenu(_items, _sortMenuHeight,
-                  isSortingMenuVisible, onOpenClose, onReorder),
-              SizedBox(
-                height: 10,
-              ),
-              Expanded(
-                  child: SingleChildScrollView(
-                      child: Column(children: [
-                for (var parkPool in parksAndPools)
-                  parksAndPoolsListItemWidget(context, viewModel, parkPool,
-                      parksAndPools.indexOf(parkPool))
-              ])))
-            ]));
+        _parksAndPools = viewModel.response.data as List<ParksAndPools>;
+        return ListView.builder(
+            shrinkWrap: true,
+            physics: const ClampingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            itemCount: _parksAndPools.length,
+            itemBuilder: (BuildContext context, int index) {
+              return Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  child: InkWell(
+                      onTap: () {
+                        widget.appBarChange();
+                        widget.navKey.currentState!.pushNamed(
+                            NavRoutes.parkAndPoolDetailsRoute,
+                            arguments: {
+                              'park_and_pool': _parksAndPools[index],
+                              'index': index
+                            });
+                      },
+                      child: parksAndPoolsListItemWidget(
+                          context, viewModel, _parksAndPools[index], index)));
+            });
       case Status.ERROR:
         return const Center(
           child: Text('Please try again later!!!'),
@@ -92,15 +110,14 @@ class _ParksAndPoolsListScreenState extends State<ParksAndPoolsListScreen> {
         initialData: 0.0,
         builder: (context, snapshot) {
           return AnimatedContainer(
-              padding: EdgeInsets.symmetric(vertical: 5),
               curve: Curves.elasticOut,
-              height: needToAnimate ? snapshot.data! : 360,
-              duration: Duration(milliseconds: 2000),
+              height: snapshot.data,
+              duration: Duration(milliseconds: 1500),
               child: Card(
                 color: Constants.cardBgColors[index],
                 child: Padding(
                     padding:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                     child: Constants.isMobile
                         ? itemMobile(parkAndPool, viewModel, index)
                         : itemTablet(parkAndPool, viewModel, index)),
@@ -112,8 +129,12 @@ class _ParksAndPoolsListScreenState extends State<ParksAndPoolsListScreen> {
       ParksAndPoolsListViewModel viewModel, int index) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        SharedWidgets.itemTitleWidget(parkAndPool.name),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          SharedWidgets.itemTitleWidget(parkAndPool.name),
+          SharedWidgets.itemPriceWidget(parkAndPool.price),
+        ]),
         Hero(
           tag: 'park_and_pool_image$index',
           child: SharedWidgets.networkImageWithLoading(parkAndPool.imageUrl),
@@ -122,13 +143,7 @@ class _ParksAndPoolsListScreenState extends State<ParksAndPoolsListScreen> {
             padding: EdgeInsets.symmetric(vertical: 2),
             child:
                 SharedWidgets.itemDescriptionWidget(parkAndPool.description)),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            SharedWidgets.itemPriceWidget(parkAndPool.price),
-            likeDislikeWidget(parkAndPool, viewModel)
-          ],
-        )
+        likeDislikeWidget(parkAndPool, viewModel)
       ],
     );
   }
@@ -157,8 +172,9 @@ class _ParksAndPoolsListScreenState extends State<ParksAndPoolsListScreen> {
           ],
         ),
         Padding(
-            padding: EdgeInsets.fromLTRB(32, 0, 0, 0),
-            child: likeDislikeWidget(parkAndPool, viewModel))
+          padding: EdgeInsets.fromLTRB(32, 0, 0, 0),
+          child: likeDislikeWidget(parkAndPool, viewModel),
+        )
       ],
     );
   }
@@ -196,7 +212,6 @@ class _ParksAndPoolsListScreenState extends State<ParksAndPoolsListScreen> {
                 }
               },
               child: Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Text(
                     parkAndPool.downVotes.length.toString() + ' ',
@@ -245,7 +260,6 @@ class _ParksAndPoolsListScreenState extends State<ParksAndPoolsListScreen> {
                 }
               },
               child: Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Icon(
                     Icons.thumb_up_sharp,
@@ -269,8 +283,8 @@ class _ParksAndPoolsListScreenState extends State<ParksAndPoolsListScreen> {
 
   void onOpenClose() {
     setState(() {
-      isSortingMenuVisible = !isSortingMenuVisible;
-      if (isSortingMenuVisible) {
+      _isSortingMenuVisible = !_isSortingMenuVisible;
+      if (_isSortingMenuVisible) {
         _sortMenuHeight = 80;
       } else {
         _sortMenuHeight = 0;
@@ -283,17 +297,17 @@ class _ParksAndPoolsListScreenState extends State<ParksAndPoolsListScreen> {
       if (oldIndex < newIndex) {
         newIndex -= 1;
       }
-      final String item = _items.removeAt(oldIndex);
-      _items.insert(newIndex, item);
+      final String item = _sortMenuItems.removeAt(oldIndex);
+      _sortMenuItems.insert(newIndex, item);
 
-      if (_items[0] == 'Price' && _items[1] == 'Up Votes') {
-        parksAndPools.sort((a, b) {
+      if (_sortMenuItems[0] == 'Price' && _sortMenuItems[1] == 'Up Votes') {
+        _parksAndPools.sort((a, b) {
           int cmp = a.price.compareTo(b.price);
           if (cmp != 0) return cmp;
           return b.upVotes.length.compareTo(a.upVotes.length);
         });
       } else {
-        parksAndPools.sort((a, b) {
+        _parksAndPools.sort((a, b) {
           int cmp = b.upVotes.length.compareTo(a.upVotes.length);
           if (cmp != 0) return cmp;
           return a.price.compareTo(b.price);

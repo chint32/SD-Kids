@@ -23,6 +23,7 @@ class SchoolsListScreen extends StatefulWidget {
 class _SchoolsListScreenState extends State<SchoolsListScreen> {
   @override
   void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<SchoolsListViewModel>().clearData();
@@ -50,14 +51,22 @@ class _SchoolsListScreenState extends State<SchoolsListScreen> {
               child: SingleChildScrollView(
                   child: Column(children: <Widget>[
                 SharedWidgets.screenTitle('Schools'),
-                for (var type in types)
-                  SchoolsByType(
-                      viewModel,
-                      types,
-                      type,
-                      schoolsAllTypes
-                          .where((school) => school.types.contains(type))
-                          .toList())
+                    ListView.builder(
+                        shrinkWrap: true,
+                        physics: const ClampingScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 4),
+                        itemCount: types.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return SchoolsByType(
+                              viewModel,
+                              types,
+                              types[index],
+                              schoolsAllTypes
+                                  .where((school) =>
+                                  school.types.contains(types[index]))
+                                  .toList());
+                        })
               ])));
         case Status.ERROR:
           return const Center(
